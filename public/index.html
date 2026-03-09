@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VecoLite — Location de Vélos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --parchment:   #F2EBD9;
+      --parchment-d: #E5D9C2;
+      --forest:      #1C3A22;
+      --forest-l:    #2D5534;
+      --terra:       #B85C2C;
+      --terra-l:     #D4763E;
+      --gold:        #C4973A;
+      --sage:        #7A9A6B;
+      --sage-l:      #A8C09A;
+      --text:        #2A3B2C;
+      --muted:       #6B7C6D;
+      --cream:       #FDF9F2;
+      --white:       #FFFFFF;
+      --r:           16px;
+      --r-sm:        8px;
+      --sh:          0 4px 24px rgba(28,58,34,.08);
+      --sh-h:        0 12px 40px rgba(28,58,34,.16);
+      --ease:        cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--parchment);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+      transition: background .3s var(--ease), box-shadow .3s var(--ease);
+    }
+    nav.scrolled {
+      background: rgba(242,235,217,.96);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 20px rgba(28,58,34,.07);
+    }
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.85rem; font-weight: 700;
+      color: var(--forest); text-decoration: none;
+      letter-spacing: -.02em;
+    }
+    .logo span { color: var(--terra); }
+    .nav-btn {
+      background: var(--forest); color: var(--cream);
+      padding: .6rem 1.5rem; border-radius: 100px;
+      font-size: .875rem; font-weight: 500;
+      text-decoration: none; transition: all .25s var(--ease);
+    }
+    .nav-btn:hover { background: var(--forest-l); transform: translateY(-1px); }
+
+    /* ── HERO ────────────────────────────────────────────── */
+    #hero {
+      min-height: 100svh;
+      display: flex; align-items: center;
+      padding: 0 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    /* dot grid */
+    #hero::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: radial-gradient(circle at 1px 1px, rgba(28,58,34,.09) 1px, transparent 0);
+      background-size: 36px 36px;
+    }
+    /* large decorative glow */
+    #hero::after {
+      content: '';
+      position: absolute; right: -8%; top: 50%;
+      transform: translateY(-50%);
+      width: 55vw; height: 55vw;
+      max-width: 680px; max-height: 680px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,92,44,.12) 0%, rgba(196,151,58,.06) 45%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      padding-top: 80px; position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: .625rem;
+      font-size: .8rem; font-weight: 500;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--terra); margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow::before {
+      content: ''; display: block;
+      width: 2rem; height: 1px; background: var(--terra);
+    }
+    .hero-h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3.5rem, 8.5vw, 7.5rem);
+      font-weight: 700; line-height: .92;
+      letter-spacing: -.025em; color: var(--forest);
+      margin-bottom: 1.5rem; max-width: 720px;
+    }
+    .hero-h1 em { font-style: italic; color: var(--terra); }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--muted);
+      max-width: 480px; margin-bottom: 3rem; line-height: 1.75;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: .75rem;
+      background: var(--forest); color: var(--cream);
+      padding: 1rem 2.25rem; border-radius: 100px;
+      font-size: 1rem; font-weight: 500;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all .3s var(--ease);
+    }
+    .hero-cta:hover {
+      background: var(--forest-l);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(28,58,34,.25);
+    }
+    .hero-cta svg { transition: transform .25s var(--ease); }
+    .hero-cta:hover svg { transform: translateX(4px); }
+
+    .hero-stats {
+      display: flex; gap: 3rem;
+      margin-top: 4rem; padding-top: 3rem;
+      border-top: 1px solid rgba(28,58,34,.12);
+    }
+    .stat-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.75rem; font-weight: 700;
+      color: var(--forest); line-height: 1;
+    }
+    .stat-lbl { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+
+    /* floating badge */
+    .hero-badge {
+      position: absolute; right: 6%; top: 30%;
+      background: var(--cream); border-radius: 20px;
+      padding: 1.75rem; box-shadow: var(--sh-h);
+      animation: floatY 3.5s ease-in-out infinite;
+      width: 210px;
+    }
+    @keyframes floatY {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-14px); }
+    }
+    .badge-lbl { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: .5rem; }
+    .badge-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.25rem; font-weight: 700; color: var(--forest); line-height: 1;
+    }
+    .badge-suffix { font-size: .8rem; color: var(--muted); }
+    .badge-tags { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+    .badge-tag {
+      padding: .2rem .65rem; border-radius: 100px;
+      font-size: .7rem; font-weight: 600;
+    }
+    .badge-tag.classic { background: rgba(122,154,107,.15); color: var(--sage); }
+    .badge-tag.exp     { background: rgba(184,92,44,.12);   color: var(--terra); }
+
+    .scroll-hint {
+      position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .1em;
+    }
+    .scroll-hint::after {
+      content: ''; display: block; width: 1px; height: 44px;
+      background: linear-gradient(to bottom, var(--muted), transparent);
+      animation: scrollLine 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%   { transform: scaleY(0); transform-origin: top;    opacity: 1; }
+      49%  { transform: scaleY(1); transform-origin: top;    opacity: 1; }
+      50%  { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+      100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+    }
+
+    /* ── SECTION COMMON ──────────────────────────────────── */
+    .section-eyebrow {
+      font-size: .8rem; font-weight: 500;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--terra); margin-bottom: 1rem;
+    }
+    .section-h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4.5vw, 3.75rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.02em; color: var(--forest);
+      margin-bottom: .75rem;
+    }
+    .section-sub { font-size: 1rem; color: var(--muted); max-width: 540px; margin-bottom: 3rem; line-height: 1.75; }
+
+    /* ── BOOKING SECTION ─────────────────────────────────── */
+    #book { padding: 6rem 2.5rem; max-width: 1200px; margin: 0 auto; }
+
+    /* step indicator */
+    .steps-bar {
+      display: flex; align-items: center;
+      margin-bottom: 3.5rem;
+    }
+    .step-node {
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .step-circle {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 600;
+      border: 2px solid var(--parchment-d);
+      background: var(--parchment-d); color: var(--muted);
+      transition: all .3s var(--ease);
+    }
+    .step-node.active  .step-circle { background: var(--forest); border-color: var(--forest); color: #fff; }
+    .step-node.done    .step-circle { background: var(--sage);   border-color: var(--sage);   color: #fff; }
+    .step-name { font-size: .85rem; font-weight: 500; color: var(--muted); }
+    .step-node.active .step-name { color: var(--forest); font-weight: 600; }
+    .step-line { flex: 1; height: 1px; background: var(--parchment-d); margin: 0 1rem; max-width: 100px; }
+
+    /* bike type cards */
+    .bike-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    .bike-card {
+      background: var(--cream); border-radius: var(--r);
+      padding: 2rem; border: 2px solid transparent;
+      cursor: pointer; transition: all .3s var(--ease);
+      box-shadow: var(--sh); position: relative; overflow: hidden;
+    }
+    .bike-card::after {
+      content: ''; position: absolute;
+      top: 0; right: 0;
+      width: 130px; height: 130px;
+      border-radius: 0 var(--r) 0 100%;
+      transition: all .3s var(--ease);
+    }
+    .bike-card[data-type="classic"]::after    { background: rgba(122,154,107,.12); }
+    .bike-card[data-type="experience"]::after { background: rgba(184,92,44,.1); }
+    .bike-card:hover { transform: translateY(-5px); box-shadow: var(--sh-h); }
+    .bike-card.selected { border-color: var(--forest); }
+    .bike-card.selected::after { background: rgba(28,58,34,.07) !important; }
+
+    .card-badge {
+      position: absolute; top: 1.25rem; right: 1.25rem;
+      padding: .2rem .7rem; border-radius: 100px;
+      font-size: .68rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    }
+    .bike-card[data-type="classic"]    .card-badge { background: rgba(122,154,107,.15); color: var(--sage); }
+    .bike-card[data-type="experience"] .card-badge { background: rgba(184,92,44,.12);   color: var(--terra); }
+    .card-check {
+      position: absolute; top: 1.25rem; right: 1.25rem;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--forest); color: #fff;
+      display: none; align-items: center; justify-content: center; font-size: .875rem;
+    }
+    .bike-card.selected .card-badge { display: none; }
+    .bike-card.selected .card-check { display: flex; }
+
+    .card-icon {
+      width: 60px; height: 60px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem; margin-bottom: 1.25rem;
+    }
+    .bike-card[data-type="classic"]    .card-icon { background: rgba(122,154,107,.14); }
+    .bike-card[data-type="experience"] .card-icon { background: rgba(184,92,44,.1); }
+
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem; font-weight: 700; color: var(--forest); margin-bottom: .4rem;
+    }
+    .card-desc { font-size: .9rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.65; }
+    .card-prices { display: flex; gap: .75rem; }
+    .price-pill {
+      flex: 1; background: var(--parchment);
+      border-radius: var(--r-sm); padding: .75rem;
+    }
+    .price-pill-lbl { font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: .2rem; }
+    .price-pill-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.45rem; font-weight: 700; color: var(--forest); line-height: 1.1;
+    }
+    .price-pill-cur { font-size: .8rem; color: var(--muted); }
+
+    /* ── DURATION STEP ───────────────────────────────────── */
+    .booking-step { display: none; }
+    .booking-step.visible { display: block; animation: slideUp .4s var(--ease) both; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      font-size: .875rem; color: var(--muted); cursor: pointer;
+      border: none; background: none; padding: 0;
+      margin-bottom: 2rem; transition: color .2s;
+    }
+    .back-btn:hover { color: var(--forest); }
+
+    .duration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .duration-card {
+      background: var(--cream); border-radius: var(--r);
+      padding: 2.25rem 2rem; border: 2px solid transparent;
+      cursor: pointer; text-align: center;
+      transition: all .3s var(--ease); box-shadow: var(--sh);
+    }
+    .duration-card:hover { transform: translateY(-5px); box-shadow: var(--sh-h); }
+    .duration-card.selected { border-color: var(--forest); }
+    .dur-icon { font-size: 2.75rem; margin-bottom: 1rem; }
+    .dur-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 700; color: var(--forest); margin-bottom: .4rem;
+    }
+    .dur-price { font-size: 1.2rem; font-weight: 600; color: var(--terra); margin-bottom: .4rem; }
+    .dur-desc  { font-size: .875rem; color: var(--muted); }
+
+    /* ── FORM STEP ───────────────────────────────────────── */
+    .form-layout {
+      display: grid; grid-template-columns: 1fr 360px; gap: 2rem;
+    }
+    .form-card {
+      background: var(--cream); border-radius: var(--r);
+      padding: 2.5rem; box-shadow: var(--sh);
+    }
+    .form-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem; font-weight: 700; color: var(--forest); margin-bottom: 2rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .form-grp { margin-bottom: 1rem; }
+    .form-lbl {
+      display: block; font-size: .85rem; font-weight: 500;
+      color: var(--text); margin-bottom: .375rem;
+    }
+    .req { color: var(--terra); }
+    .form-inp {
+      width: 100%; padding: .875rem 1rem;
+      border: 1.5px solid var(--parchment-d);
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif; font-size: .9375rem;
+      color: var(--text); background: var(--white);
+      outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .form-inp:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px rgba(28,58,34,.08);
+    }
+    .form-hint { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+    /* Summary card */
+    .summary {
+      background: var(--forest); border-radius: var(--r);
+      padding: 2rem; color: #fff; position: sticky; top: 100px;
+    }
+    .sum-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem; font-weight: 700;
+      color: rgba(255,255,255,.9); margin-bottom: 1.5rem;
+    }
+    .sum-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .65rem 0; border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .sum-row:last-of-type { border-bottom: none; }
+    .sum-key { font-size: .875rem; color: rgba(255,255,255,.55); }
+    .sum-val { font-size: .9375rem; font-weight: 500; }
+    .sum-total {
+      margin-top: 1.25rem; padding-top: 1.25rem;
+      border-top: 1px solid rgba(255,255,255,.15);
+      display: flex; justify-content: space-between; align-items: flex-end;
+    }
+    .sum-total-lbl { font-size: .875rem; color: rgba(255,255,255,.6); }
+    .sum-total-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.25rem; font-weight: 700; line-height: 1;
+    }
+    .sum-total-cur { font-size: .9rem; color: rgba(255,255,255,.6); margin-left: .2rem; }
+
+    .btn-submit {
+      width: 100%; margin-top: 1.5rem;
+      padding: 1.125rem;
+      background: var(--terra); color: #fff;
+      border: none; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all .3s var(--ease);
+      display: flex; align-items: center; justify-content: center; gap: .75rem;
+    }
+    .btn-submit:hover { background: #a04c20; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(184,92,44,.3); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* ── HOW IT WORKS ────────────────────────────────────── */
+    #hiw {
+      background: var(--forest); color: #fff;
+      padding: 6rem 2.5rem;
+    }
+    .hiw-inner { max-width: 1200px; margin: 0 auto; }
+    .hiw-header { text-align: center; margin-bottom: 4rem; }
+    .hiw-eyebrow { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--sage-l); margin-bottom: 1rem; }
+    .hiw-h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 4vw, 3rem); font-weight: 700; color: #fff;
+    }
+    .hiw-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3rem; }
+    .hiw-item { text-align: center; }
+    .hiw-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,.18);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 700; color: var(--gold);
+    }
+    .hiw-icon  { font-size: 2.5rem; margin-bottom: .75rem; }
+    .hiw-name  { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 700; margin-bottom: .6rem; }
+    .hiw-desc  { font-size: .9rem; color: rgba(255,255,255,.55); line-height: 1.75; }
+
+    /* ── FOOTER ──────────────────────────────────────────── */
+    footer {
+      background: var(--parchment-d); padding: 3.5rem 2.5rem;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700; color: var(--forest); margin-bottom: .75rem;
+    }
+    .footer-logo span { color: var(--terra); }
+    .footer-tagline { font-size: .9375rem; color: var(--muted); margin-bottom: 2rem; }
+    .footer-links { display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap; }
+    .footer-links a { font-size: .875rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: var(--forest); }
+    .footer-copy { margin-top: 2rem; font-size: .8rem; color: var(--muted); }
+
+    /* ── LOADING ─────────────────────────────────────────── */
+    #loading {
+      position: fixed; inset: 0;
+      background: rgba(242,235,217,.92); backdrop-filter: blur(8px);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.25rem; z-index: 999;
+    }
+    #loading.on { display: flex; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid var(--parchment-d); border-top-color: var(--forest);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ───────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 1001;
+      background: var(--cream); border-radius: var(--r);
+      padding: 1rem 1.5rem; box-shadow: var(--sh-h);
+      display: flex; align-items: center; gap: .75rem;
+      transform: translateY(80px); opacity: 0;
+      transition: all .35s var(--ease);
+      max-width: 340px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.err  { border-left: 4px solid #E53E3E; }
+    #toast.ok   { border-left: 4px solid var(--sage); }
+
+    /* ── FADE-IN ON SCROLL ───────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .65s var(--ease), transform .65s var(--ease);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .bike-grid     { grid-template-columns: 1fr; }
+      .duration-grid { grid-template-columns: 1fr; }
+      .form-layout   { grid-template-columns: 1fr; }
+      .form-row      { grid-template-columns: 1fr; }
+      .hiw-grid      { grid-template-columns: 1fr; gap: 2rem; }
+      .hero-badge    { display: none; }
+      .hero-stats    { flex-wrap: wrap; gap: 1.5rem; }
+      nav            { padding: 1rem 1.25rem; }
+      #hero, #book, #hiw, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="logo">Veco<span>Lite</span></a>
+  <a href="#book" class="nav-btn">Réserver maintenant</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow reveal">Location de vélos en ville</div>
+    <h1 class="hero-h1 reveal">
+      Explorez<br><em>librement,</em><br>pédalez.
+    </h1>
+    <p class="hero-sub reveal">
+      Deux types de vélos, deux formules simples. Réservez en ligne,
+      récupérez votre vélo avec votre QR code, et partez à l'aventure.
+    </p>
+    <div class="reveal">
+      <a href="#book" class="hero-cta">
+        Choisir mon vélo
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <div class="hero-stats reveal">
+      <div>
+        <div class="stat-val">2</div>
+        <div class="stat-lbl">Types de vélos</div>
+      </div>
+      <div>
+        <div class="stat-val">5 000<span style="font-size:1.2rem">F</span></div>
+        <div class="stat-lbl">Dès 3 heures</div>
+      </div>
+      <div>
+        <div class="stat-val">QR</div>
+        <div class="stat-lbl">Retrait & retour sans friction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating badge -->
+  <div class="hero-badge">
+    <div class="badge-lbl">À partir de</div>
+    <div class="badge-price">5 000</div>
+    <div class="badge-suffix">FCFA / 3 heures</div>
+    <div class="badge-tags">
+      <span class="badge-tag classic">Classique</span>
+      <span class="badge-tag exp">Expérience</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">Défiler</div>
+</section>
+
+<!-- BOOKING -->
+<section id="book">
+  <div class="section-eyebrow reveal">Réservation</div>
+  <h2 class="section-h2 reveal">Votre vélo vous attend</h2>
+  <p class="section-sub reveal">Sélectionnez votre vélo, choisissez la formule, et recevez votre QR code instantanément.</p>
+
+  <!-- Step bar -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-node active" id="sn1">
+      <div class="step-circle">1</div>
+      <div class="step-name">Vélo</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-node" id="sn2">
+      <div class="step-circle">2</div>
+      <div class="step-name">Durée</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-node" id="sn3">
+      <div class="step-circle">3</div>
+      <div class="step-name">Informations</div>
+    </div>
+  </div>
+
+  <!-- STEP 1 : Bike type -->
+  <div class="booking-step visible" id="step1">
+    <div class="bike-grid">
+      <div class="bike-card" data-type="classic" onclick="selectBike('classic')">
+        <span class="card-badge">Populaire</span>
+        <span class="card-check">✓</span>
+        <div class="card-icon">🚲</div>
+        <div class="card-name">Vélo Classique</div>
+        <p class="card-desc">Confort et fiabilité pour vos déplacements urbains. Idéal pour explorer la ville à votre rythme.</p>
+        <div class="card-prices">
+          <div class="price-pill">
+            <div class="price-pill-lbl">3 Heures</div>
+            <div class="price-pill-val">5 000 <span class="price-pill-cur">F</span></div>
+          </div>
+          <div class="price-pill">
+            <div class="price-pill-lbl">Journée</div>
+            <div class="price-pill-val">10 000 <span class="price-pill-cur">F</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bike-card" data-type="experience" onclick="selectBike('experience')">
+        <span class="card-badge">Premium</span>
+        <span class="card-check">✓</span>
+        <div class="card-icon">⚡</div>
+        <div class="card-name">Vélo Expérience</div>
+        <p class="card-desc">Performance et sensations uniques. Équipement supérieur pour les aventuriers qui veulent plus.</p>
+        <div class="card-prices">
+          <div class="price-pill">
+            <div class="price-pill-lbl">3 Heures</div>
+            <div class="price-pill-val">7 000 <span class="price-pill-cur">F</span></div>
+          </div>
+          <div class="price-pill">
+            <div class="price-pill-lbl">Journée</div>
+            <div class="price-pill-val">12 000 <span class="price-pill-cur">F</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 : Duration -->
+  <div class="booking-step" id="step2">
+    <button class="back-btn" onclick="goStep(1)">
+      ← Changer de vélo
+    </button>
+    <div class="duration-grid">
+      <div class="duration-card" data-dur="3h" onclick="selectDuration('3h')">
+        <div class="dur-icon">⏱️</div>
+        <div class="dur-name">3 Heures</div>
+        <div class="dur-price" id="price3h">—</div>
+        <div class="dur-desc">Parfait pour une sortie rapide ou un trajet aller-retour.</div>
+      </div>
+      <div class="duration-card" data-dur="day" onclick="selectDuration('day')">
+        <div class="dur-icon">🌅</div>
+        <div class="dur-name">Journée Complète</div>
+        <div class="dur-price" id="priceDay">—</div>
+        <div class="dur-desc">Toute la journée pour explorer sans contrainte de temps.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 : Form -->
+  <div class="booking-step" id="step3">
+    <button class="back-btn" onclick="goStep(2)">← Changer la durée</button>
+    <div class="form-layout">
+      <div class="form-card">
+        <div class="form-title">Vos coordonnées</div>
+        <div class="form-row">
+          <div class="form-grp">
+            <label class="form-lbl">Prénom & Nom <span class="req">*</span></label>
+            <input class="form-inp" type="text" id="fName" placeholder="Jean Dupont" />
+          </div>
+          <div class="form-grp">
+            <label class="form-lbl">Téléphone <span class="req">*</span></label>
+            <input class="form-inp" type="tel" id="fPhone" placeholder="+221 70 000 00 00" />
+          </div>
+        </div>
+        <div class="form-grp">
+          <label class="form-lbl">Email <span style="color:var(--muted);font-size:.8rem">(facultatif)</span></label>
+          <input class="form-inp" type="email" id="fEmail" placeholder="jean@email.com" />
+          <div class="form-hint">Pour recevoir votre confirmation par email.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-grp">
+            <label class="form-lbl">Date <span class="req">*</span></label>
+            <input class="form-inp" type="date" id="fDate" />
+          </div>
+          <div class="form-grp">
+            <label class="form-lbl">Heure de retrait <span class="req">*</span></label>
+            <select class="form-inp" id="fTime">
+              <option value="">Choisir</option>
+              <option>07:00</option><option>08:00</option><option>09:00</option>
+              <option>10:00</option><option>11:00</option><option>12:00</option>
+              <option>13:00</option><option>14:00</option><option>15:00</option>
+              <option>16:00</option><option>17:00</option><option>18:00</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary">
+        <div class="sum-title">Récapitulatif</div>
+        <div class="sum-row">
+          <span class="sum-key">Vélo</span>
+          <span class="sum-val" id="sumBike">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-key">Formule</span>
+          <span class="sum-val" id="sumDur">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-key">Date</span>
+          <span class="sum-val" id="sumDate">—</span>
+        </div>
+        <div class="sum-row">
+          <span class="sum-key">Heure</span>
+          <span class="sum-val" id="sumTime">—</span>
+        </div>
+        <div class="sum-total">
+          <span class="sum-total-lbl">Total</span>
+          <span>
+            <span class="sum-total-price" id="sumPrice">—</span>
+            <span class="sum-total-cur">FCFA</span>
+          </span>
+        </div>
+        <button class="btn-submit" id="submitBtn" onclick="submitBooking()">
+          <span id="submitTxt">Confirmer la réservation →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="hiw">
+  <div class="hiw-inner">
+    <div class="hiw-header">
+      <div class="hiw-eyebrow">Comment ça marche</div>
+      <h2 class="hiw-h2">Simple comme un coup de pédale</h2>
+    </div>
+    <div class="hiw-grid">
+      <div class="hiw-item">
+        <div class="hiw-num">1</div>
+        <div class="hiw-icon">📱</div>
+        <div class="hiw-name">Réservez en ligne</div>
+        <p class="hiw-desc">Choisissez votre vélo, votre formule et vos dates. Recevez votre QR code de réservation instantanément.</p>
+      </div>
+      <div class="hiw-item">
+        <div class="hiw-num">2</div>
+        <div class="hiw-icon">🔍</div>
+        <div class="hiw-name">Scannez au retrait</div>
+        <p class="hiw-desc">Présentez votre QR code à notre agent. Il scanne et votre vélo vous est remis immédiatement.</p>
+      </div>
+      <div class="hiw-item">
+        <div class="hiw-num">3</div>
+        <div class="hiw-icon">✅</div>
+        <div class="hiw-name">Rendez & partez</div>
+        <p class="hiw-desc">Au retour, un second scan confirme la restitution. Simple, rapide, sans papier.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Veco<span>Lite</span></div>
+  <p class="footer-tagline">La liberté de rouler, l'élégance de la simplicité.</p>
+  <div class="footer-links">
+    <a href="#book">Réserver</a>
+    <a href="#hiw">Comment ça marche</a>
+    <a href="/admin/">Administration</a>
+  </div>
+  <p class="footer-copy">© 2024 VecoLite. Tous droits réservés.</p>
+</footer>
+
+<!-- Loading -->
+<div id="loading"><div class="spinner"></div><p style="color:var(--muted)">Création de votre réservation…</p></div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────────────────
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let state = { bikeType: null, duration: null };
+
+  const BIKE_LABELS = { classic: 'Vélo Classique', experience: 'Vélo Expérience' };
+  const DUR_LABELS  = { '3h': '3 Heures', day: 'Journée complète' };
+  const PRICES = {
+    classic:    { '3h': 5000,  day: 10000 },
+    experience: { '3h': 7000,  day: 12000 },
+  };
+
+  // ── Nav scroll effect ─────────────────────────────────────────────────────
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // ── Scroll reveal ─────────────────────────────────────────────────────────
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+    { threshold: 0.12 }
+  );
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Step management ───────────────────────────────────────────────────────
+  function goStep(n) {
+    document.querySelectorAll('.booking-step').forEach((s, i) => {
+      s.classList.toggle('visible', i + 1 === n);
+    });
+    ['sn1','sn2','sn3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active', 'done');
+      if (i + 1 === n) el.classList.add('active');
+      if (i + 1 < n)  el.classList.add('done');
+    });
+    document.getElementById('book').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Step 1: Select bike ───────────────────────────────────────────────────
+  function selectBike(type) {
+    state.bikeType = type;
+    document.querySelectorAll('.bike-card').forEach(c =>
+      c.classList.toggle('selected', c.dataset.type === type)
+    );
+    // Update duration prices
+    document.getElementById('price3h').textContent  = PRICES[type]['3h'].toLocaleString('fr') + ' FCFA';
+    document.getElementById('priceDay').textContent = PRICES[type].day.toLocaleString('fr')  + ' FCFA';
+    setTimeout(() => goStep(2), 350);
+  }
+
+  // ── Step 2: Select duration ───────────────────────────────────────────────
+  function selectDuration(dur) {
+    state.duration = dur;
+    document.querySelectorAll('.duration-card').forEach(c =>
+      c.classList.toggle('selected', c.dataset.dur === dur)
+    );
+    updateSummary();
+    setTimeout(() => goStep(3), 350);
+  }
+
+  // ── Summary update ────────────────────────────────────────────────────────
+  function updateSummary() {
+    document.getElementById('sumBike').textContent = state.bikeType ? BIKE_LABELS[state.bikeType] : '—';
+    document.getElementById('sumDur').textContent  = state.duration  ? DUR_LABELS[state.duration]  : '—';
+    if (state.bikeType && state.duration) {
+      const p = PRICES[state.bikeType][state.duration];
+      document.getElementById('sumPrice').textContent = p.toLocaleString('fr');
+    }
+  }
+
+  // Live summary from form
+  document.addEventListener('DOMContentLoaded', () => {
+    // Set min date to today
+    document.getElementById('fDate').min = new Date().toISOString().split('T')[0];
+
+    document.getElementById('fDate').addEventListener('change', () => {
+      const d = document.getElementById('fDate').value;
+      document.getElementById('sumDate').textContent = d
+        ? new Date(d).toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'long' })
+        : '—';
+    });
+    document.getElementById('fTime').addEventListener('change', () => {
+      document.getElementById('sumTime').textContent = document.getElementById('fTime').value || '—';
+    });
+  });
+
+  // ── Submit ────────────────────────────────────────────────────────────────
+  async function submitBooking() {
+    const name  = document.getElementById('fName').value.trim();
+    const phone = document.getElementById('fPhone').value.trim();
+    const email = document.getElementById('fEmail').value.trim();
+    const date  = document.getElementById('fDate').value;
+    const time  = document.getElementById('fTime').value;
+
+    if (!name || !phone || !date || !time) {
+      showToast('Veuillez remplir tous les champs obligatoires.', 'err');
+      return;
+    }
+    if (!state.bikeType || !state.duration) {
+      showToast('Veuillez choisir un vélo et une durée.', 'err');
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    const txt = document.getElementById('submitTxt');
+    btn.disabled = true;
+    txt.textContent = 'Traitement en cours…';
+    document.getElementById('loading').classList.add('on');
+
+    try {
+      const res = await fetch(`${API}/api/bookings/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_name: name,
+          client_phone: phone,
+          client_email: email || null,
+          bike_type: state.bikeType,
+          duration_type: state.duration,
+          booking_date: date,
+          booking_time: time,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Erreur de réservation');
+      }
+
+      const data = await res.json();
+      // Store in sessionStorage for confirmation page
+      sessionStorage.setItem('vecolite_booking', JSON.stringify(data));
+      window.location.href = '/confirmation.html';
+    } catch (e) {
+      document.getElementById('loading').classList.remove('on');
+      btn.disabled = false;
+      txt.textContent = 'Confirmer la réservation →';
+      showToast(e.message, 'err');
+    }
+  }
+
+  // ── Toast helper ──────────────────────────────────────────────────────────
+  function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    t.className = `show ${type}`;
+    t.textContent = msg;
+    setTimeout(() => { t.className = ''; }, 4000);
+  }
+</script>
+</body>
+</html>

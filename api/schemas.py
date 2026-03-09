@@ -1,0 +1,87 @@
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+
+# ── Bookings ──────────────────────────────────────────────────────────────────
+
+class BookingCreate(BaseModel):
+    client_name: str
+    client_phone: str
+    client_email: Optional[str] = None
+    bike_type: str       # classic | experience
+    duration_type: str   # 3h | day
+    booking_date: str    # YYYY-MM-DD
+    booking_time: str    # HH:MM
+
+
+class BookingResponse(BaseModel):
+    id: int
+    booking_code: str
+    qr_token: str
+    qr_code_base64: str
+    client_name: str
+    client_phone: str
+    client_email: Optional[str]
+    bike_type: str
+    duration_type: str
+    price: int
+    booking_date: str
+    booking_time: str
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ── Bikes ─────────────────────────────────────────────────────────────────────
+
+class BikeCreate(BaseModel):
+    name: str
+    type: str            # classic | experience
+    description: Optional[str] = None
+
+
+class BikeUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    description: Optional[str] = None
+
+
+class BikeResponse(BaseModel):
+    id: int
+    name: str
+    type: str
+    status: str
+    description: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ── Admin Auth ────────────────────────────────────────────────────────────────
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
+# ── QR Scan ───────────────────────────────────────────────────────────────────
+
+class ScanRequest(BaseModel):
+    token: str
+
+
+class ScanResponse(BaseModel):
+    success: bool
+    action: str          # pickup | return | none
+    message: str
+    booking: Optional[dict] = None

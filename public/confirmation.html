@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmation — VecoLite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --parchment:  #F2EBD9;
+      --parchment-d:#E5D9C2;
+      --forest:     #1C3A22;
+      --forest-l:   #2D5534;
+      --terra:      #B85C2C;
+      --gold:       #C4973A;
+      --sage:       #7A9A6B;
+      --text:       #2A3B2C;
+      --muted:      #6B7C6D;
+      --cream:      #FDF9F2;
+      --r:          16px;
+      --sh:         0 4px 24px rgba(28,58,34,.08);
+      --sh-h:       0 12px 40px rgba(28,58,34,.16);
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--parchment);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* NAV */
+    nav {
+      background: rgba(242,235,217,.96); backdrop-filter: blur(12px);
+      box-shadow: 0 2px 20px rgba(28,58,34,.07);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+    }
+    .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.85rem; font-weight: 700; color: var(--forest); text-decoration: none; }
+    .logo span { color: var(--terra); }
+    .nav-link { color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .nav-link:hover { color: var(--forest); }
+
+    /* MAIN */
+    main {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+    .confirm-wrap {
+      max-width: 780px; width: 100%;
+    }
+
+    /* Success header */
+    .success-header {
+      text-align: center; margin-bottom: 2.5rem;
+      animation: fadeUp .6s ease both;
+    }
+    .success-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(122,154,107,.15); margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      animation: popIn .5s cubic-bezier(.34,1.56,.64,1) .2s both;
+    }
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; color: var(--forest);
+      line-height: 1.05; margin-bottom: .6rem;
+    }
+    .success-sub { font-size: 1rem; color: var(--muted); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards layout */
+    .cards-grid {
+      display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem;
+      animation: fadeUp .6s ease .15s both;
+    }
+
+    /* QR Card */
+    .qr-card {
+      background: var(--cream); border-radius: var(--r);
+      padding: 2.5rem; box-shadow: var(--sh);
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center;
+    }
+    .qr-label {
+      font-size: .8rem; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--muted); margin-bottom: 1.25rem;
+    }
+    .qr-img-wrap {
+      background: var(--parchment); border-radius: 12px;
+      padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    #qrImage { width: 200px; height: 200px; display: block; }
+    .booking-code {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700; color: var(--forest);
+      letter-spacing: .05em; margin-bottom: .25rem;
+    }
+    .qr-instruction {
+      font-size: .875rem; color: var(--muted); margin-bottom: 2rem; line-height: 1.65;
+    }
+    .btn-print {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--forest); color: #fff;
+      padding: .75rem 1.75rem; border-radius: 100px;
+      font-size: .9rem; font-weight: 500;
+      border: none; cursor: pointer; transition: all .3s;
+      text-decoration: none;
+    }
+    .btn-print:hover { background: var(--forest-l); transform: translateY(-1px); }
+
+    /* Details card */
+    .detail-card {
+      background: var(--forest); border-radius: var(--r);
+      padding: 2rem; color: #fff;
+    }
+    .detail-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem; font-weight: 700;
+      color: rgba(255,255,255,.9); margin-bottom: 1.5rem;
+    }
+    .detail-row {
+      padding: .75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; flex-direction: column; gap: .2rem;
+    }
+    .detail-row:last-of-type { border-bottom: none; }
+    .detail-key { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.45); }
+    .detail-val { font-size: .9375rem; font-weight: 500; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(122,154,107,.25); color: #7EC987;
+      padding: .2rem .7rem; border-radius: 100px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #7EC987; }
+    .price-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.75rem; font-weight: 700; color: var(--gold);
+    }
+
+    /* Steps instruction */
+    .steps-card {
+      background: var(--cream); border-radius: var(--r);
+      padding: 2rem; box-shadow: var(--sh);
+      margin-top: 1.5rem;
+      animation: fadeUp .6s ease .3s both;
+    }
+    .steps-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem; font-weight: 700; color: var(--forest); margin-bottom: 1.5rem;
+    }
+    .steps-list { display: flex; gap: 1.5rem; }
+    .step-item { flex: 1; display: flex; gap: .75rem; }
+    .step-dot {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--parchment); border: 1.5px solid var(--parchment-d);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700; color: var(--forest);
+      flex-shrink: 0; margin-top: .1rem;
+    }
+    .step-content {}
+    .step-title { font-weight: 600; font-size: .9375rem; color: var(--text); margin-bottom: .2rem; }
+    .step-desc  { font-size: .8125rem; color: var(--muted); line-height: 1.55; }
+
+    /* Back link */
+    .back-wrap { text-align: center; margin-top: 2rem; animation: fadeUp .6s ease .45s both; }
+    .back-link { color: var(--muted); font-size: .875rem; text-decoration: none; transition: color .2s; }
+    .back-link:hover { color: var(--forest); }
+
+    /* Not found state */
+    .not-found {
+      text-align: center; padding: 4rem 2rem;
+      animation: fadeUp .5s ease both;
+    }
+    .not-found h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700; color: var(--forest); margin-bottom: 1rem;
+    }
+
+    /* Print styles */
+    @media print {
+      nav, .steps-card, .btn-print, .back-wrap { display: none; }
+      body { background: white; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .qr-card, .detail-card { box-shadow: none; border: 1px solid #ddd; }
+      .detail-card { background: white; color: black; }
+      .detail-title, .detail-val { color: black !important; }
+      .detail-key { color: #666 !important; }
+    }
+
+    @media (max-width: 680px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .steps-list { flex-direction: column; gap: 1rem; }
+      nav { padding: 1rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="logo">Veco<span>Lite</span></a>
+    <a href="/" class="nav-link">← Nouvelle réservation</a>
+  </nav>
+
+  <main>
+    <div class="confirm-wrap" id="content">
+      <!-- filled by JS -->
+    </div>
+  </main>
+
+  <script>
+    const booking = JSON.parse(sessionStorage.getItem('vecolite_booking') || 'null');
+
+    const BIKE_LABELS = { classic: 'Vélo Classique', experience: 'Vélo Expérience' };
+    const DUR_LABELS  = { '3h': '3 Heures', day: 'Journée complète' };
+
+    function fmt(d) {
+      if (!d) return '—';
+      return new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    const content = document.getElementById('content');
+
+    if (!booking) {
+      content.innerHTML = `
+        <div class="not-found">
+          <div style="font-size:3rem;margin-bottom:1rem">🔍</div>
+          <h2>Réservation introuvable</h2>
+          <p style="color:var(--muted);margin-bottom:1.5rem">Aucune réservation trouvée dans cette session.</p>
+          <a href="/" class="btn-print">Faire une réservation</a>
+        </div>`;
+    } else {
+      content.innerHTML = `
+        <div class="success-header">
+          <div class="success-icon">✅</div>
+          <h1 class="success-title">Réservation confirmée !</h1>
+          <p class="success-sub">Voici votre QR code — présentez-le lors du retrait de votre vélo.</p>
+        </div>
+
+        <div class="cards-grid">
+          <div class="qr-card">
+            <div class="qr-label">Votre QR code de réservation</div>
+            <div class="qr-img-wrap">
+              <img id="qrImage" src="data:image/png;base64,${booking.qr_code_base64}" alt="QR Code" />
+            </div>
+            <div class="booking-code">${booking.booking_code}</div>
+            <p class="qr-instruction">
+              Montrez ce QR code à notre agent lors du retrait de votre vélo,<br>
+              puis à nouveau lors de la restitution.
+            </p>
+            <button class="btn-print" onclick="window.print()">
+              🖨️ Imprimer / Sauvegarder
+            </button>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-title">Détails de la réservation</div>
+            <div class="detail-row">
+              <div class="detail-key">Statut</div>
+              <div class="detail-val"><span class="status-badge">Confirmée</span></div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Client</div>
+              <div class="detail-val">${booking.client_name}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Téléphone</div>
+              <div class="detail-val">${booking.client_phone}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Vélo</div>
+              <div class="detail-val">${BIKE_LABELS[booking.bike_type] || booking.bike_type}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Formule</div>
+              <div class="detail-val">${DUR_LABELS[booking.duration_type] || booking.duration_type}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Date</div>
+              <div class="detail-val">${fmt(booking.booking_date + 'T00:00:00')}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Heure de retrait</div>
+              <div class="detail-val">${booking.booking_time}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-key">Montant</div>
+              <div class="detail-val price-display">${booking.price.toLocaleString('fr')} FCFA</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="steps-card">
+          <div class="steps-card-title">Comment récupérer votre vélo</div>
+          <div class="steps-list">
+            <div class="step-item">
+              <div class="step-dot">1</div>
+              <div class="step-content">
+                <div class="step-title">Présentez-vous à l'heure</div>
+                <div class="step-desc">Arrivez à l'heure de retrait indiquée avec votre QR code à portée de main.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-dot">2</div>
+              <div class="step-content">
+                <div class="step-title">1er scan — Retrait</div>
+                <div class="step-desc">L'agent scanne votre QR code et vous remet votre vélo. Bonne route !</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-dot">3</div>
+              <div class="step-content">
+                <div class="step-title">2ème scan — Retour</div>
+                <div class="step-desc">À votre retour, l'agent scanne à nouveau le QR code pour valider la restitution.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="back-wrap">
+          <a href="/" class="back-link">← Faire une autre réservation</a>
+        </div>`;
+    }
+  </script>
+</body>
+</html>

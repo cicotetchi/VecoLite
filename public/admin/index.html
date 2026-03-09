@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — VecoLite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- QR Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0D1512;
+      --surface:  #162118;
+      --surface2: #1D2E21;
+      --border:   #253328;
+      --accent:   #4CAF67;
+      --accent-d: #2D6B40;
+      --accent-dim: rgba(76,175,103,.12);
+      --terra:    #C4622D;
+      --terra-dim: rgba(196,98,45,.12);
+      --gold:     #C4973A;
+      --gold-dim: rgba(196,151,58,.12);
+      --danger:   #EF4444;
+      --warn:     #F59E0B;
+      --text:     #CDE0CF;
+      --muted:    #607A63;
+      --mono:     'JetBrains Mono', monospace;
+      --r:        12px;
+      --r-sm:     8px;
+    }
+
+    html { height: 100%; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100%; display: flex; flex-direction: column;
+    }
+
+    /* ── LOGIN OVERLAY ───────────────────────────────────── */
+    #loginOverlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .login-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3rem; width: 100%; max-width: 400px;
+      text-align: center;
+    }
+    .login-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700;
+      color: #fff; margin-bottom: .25rem;
+    }
+    .login-logo span { color: #4CAF67; }
+    .login-sub { font-size: .875rem; color: var(--muted); margin-bottom: 2.5rem; }
+    .login-inp {
+      width: 100%; padding: .875rem 1rem;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: .9375rem;
+      outline: none; transition: border-color .2s;
+      margin-bottom: .75rem;
+    }
+    .login-inp:focus { border-color: var(--accent); }
+    .login-btn {
+      width: 100%; padding: 1rem;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all .3s;
+    }
+    .login-btn:hover { background: #3da855; transform: translateY(-1px); }
+    .login-err { color: #EF4444; font-size: .875rem; margin-top: .75rem; min-height: 1.2em; }
+
+    /* ── APP SHELL ───────────────────────────────────────── */
+    #app { display: none; flex-direction: column; min-height: 100vh; }
+    #app.visible { display: flex; }
+
+    /* Sidebar */
+    .shell { display: flex; flex: 1; }
+    aside {
+      width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 1.5rem 1rem;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .aside-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+      padding: .5rem; margin-bottom: 2rem;
+    }
+    .aside-logo span { color: var(--accent); }
+    .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 0 .5rem; margin-bottom: .5rem; }
+    .nav-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .7rem .75rem; border-radius: var(--r-sm);
+      color: var(--muted); font-size: .9rem; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+      border: 1px solid transparent; margin-bottom: .2rem;
+      background: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active { color: var(--accent); background: var(--accent-dim); border-color: var(--border); }
+    .nav-item .ni-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .aside-bottom { margin-top: auto; }
+    .user-chip {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem; border-radius: var(--r-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+    }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--accent-dim); border: 1px solid var(--accent-d);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; color: var(--accent); font-weight: 700;
+    }
+    .user-name { font-size: .875rem; font-weight: 500; }
+    .logout-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: .75rem; cursor: pointer; margin-left: auto;
+      transition: color .2s;
+    }
+    .logout-btn:hover { color: var(--danger); }
+
+    /* Main content */
+    main { flex: 1; overflow-y: auto; }
+    .page { display: none; padding: 2rem 2.5rem; max-width: 1200px; }
+    .page.active { display: block; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 700; color: #fff; margin-bottom: .25rem;
+    }
+    .page-sub { font-size: .9rem; color: var(--muted); }
+
+    /* ── STATS CARDS ─────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.5rem;
+    }
+    .stat-card-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .75rem; }
+    .stat-card-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 700; color: #fff; line-height: 1;
+      margin-bottom: .25rem;
+    }
+    .stat-card-sub { font-size: .8rem; color: var(--muted); }
+    .stat-card.accent  { border-color: var(--accent-d); }
+    .stat-card.terra   { border-color: rgba(196,98,45,.3); }
+    .stat-card.gold    { border-color: rgba(196,151,58,.3); }
+    .stat-card.revenue { border-color: rgba(76,175,103,.3); }
+    .stat-card.accent  .stat-card-value { color: var(--accent); }
+    .stat-card.terra   .stat-card-value { color: var(--terra); }
+    .stat-card.gold    .stat-card-value { color: var(--gold); }
+    .stat-card.revenue .stat-card-value { color: #7EC987; }
+
+    /* ── TABLE ───────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden;
+    }
+    .table-toolbar {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .table-toolbar-title { font-weight: 600; color: #fff; flex: 1; }
+    .filter-select {
+      padding: .5rem .875rem; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 100px;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .85rem;
+      outline: none; cursor: pointer;
+    }
+    .refresh-btn {
+      padding: .5rem .875rem; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 100px;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .85rem;
+      cursor: pointer; transition: all .2s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      padding: .875rem 1.5rem; text-align: left;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    td {
+      padding: .9rem 1.5rem; font-size: .875rem;
+      border-bottom: 1px solid rgba(37,51,40,.5);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.015); }
+    .mono { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .2rem .65rem; border-radius: 100px;
+      font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+    }
+    .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+    .badge.pending  { background: var(--gold-dim);  color: var(--gold); }
+    .badge.active   { background: var(--accent-dim); color: var(--accent); }
+    .badge.returned { background: var(--surface2);   color: var(--muted); }
+    .badge.cancelled{ background: rgba(239,68,68,.1); color: var(--danger); }
+
+    .bike-tag {
+      padding: .15rem .5rem; border-radius: 4px; font-size: .75rem; font-weight: 500;
+    }
+    .bike-tag.classic    { background: rgba(122,154,107,.15); color: #7A9A6B; }
+    .bike-tag.experience { background: var(--terra-dim); color: var(--terra); }
+
+    /* Action buttons */
+    .action-btn {
+      padding: .35rem .75rem; border-radius: var(--r-sm);
+      font-size: .75rem; font-weight: 500; cursor: pointer; transition: all .2s;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+    }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 3rem; color: var(--muted);
+    }
+    .empty-state .ei { font-size: 2.5rem; margin-bottom: 1rem; }
+
+    /* ── QR SCANNER ──────────────────────────────────────── */
+    .scanner-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    .scanner-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 2rem;
+    }
+    .sc-title { font-weight: 600; color: #fff; margin-bottom: 1rem; font-size: 1rem; }
+
+    #reader {
+      border-radius: var(--r-sm); overflow: hidden; width: 100%;
+      background: var(--bg);
+    }
+    /* Style the qr-code library elements */
+    #reader video { border-radius: var(--r-sm); }
+    #reader img   { display: none; }
+
+    .scan-controls { margin-top: 1rem; display: flex; gap: .75rem; flex-wrap: wrap; }
+    .scan-btn {
+      flex: 1; padding: .75rem 1rem; border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 600;
+      cursor: pointer; transition: all .25s; border: none;
+    }
+    .scan-btn.start  { background: var(--accent); color: #fff; }
+    .scan-btn.start:hover { background: #3da855; }
+    .scan-btn.stop   { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .scan-btn.stop:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* Manual entry */
+    .manual-wrap { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .manual-label { font-size: .8rem; color: var(--muted); margin-bottom: .5rem; }
+    .manual-row { display: flex; gap: .5rem; }
+    .manual-inp {
+      flex: 1; padding: .75rem 1rem;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text);
+      font-family: var(--mono); font-size: .875rem; outline: none;
+      transition: border-color .2s;
+    }
+    .manual-inp:focus { border-color: var(--accent); }
+    .manual-submit {
+      padding: .75rem 1.25rem;
+      background: var(--accent-dim); border: 1px solid var(--accent-d);
+      color: var(--accent); border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .manual-submit:hover { background: var(--accent); color: #fff; }
+
+    /* Scan result */
+    .scan-result {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.75rem;
+    }
+    .sr-title { font-size: .8rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 1rem; }
+    .sr-idle { text-align: center; padding: 2rem 0; color: var(--muted); }
+    .sr-idle .sr-icon { font-size: 3rem; margin-bottom: .75rem; }
+
+    .sr-success { border-left: 3px solid var(--accent); padding-left: 1rem; }
+    .sr-fail    { border-left: 3px solid var(--danger); padding-left: 1rem; }
+    .sr-msg { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+    .sr-success .sr-msg { color: var(--accent); }
+    .sr-fail    .sr-msg { color: var(--danger); }
+    .sr-fields { display: flex; flex-direction: column; gap: .5rem; }
+    .sr-field { display: flex; justify-content: space-between; align-items: center; }
+    .sr-key { font-size: .75rem; color: var(--muted); }
+    .sr-val { font-size: .875rem; font-weight: 500; }
+    .sr-action-badge {
+      display: inline-block; padding: .35rem 1rem; border-radius: 100px;
+      font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    }
+    .sr-action-badge.pickup { background: var(--accent-dim); color: var(--accent); }
+    .sr-action-badge.return { background: var(--gold-dim);   color: var(--gold); }
+
+    /* ── FLEET MANAGEMENT ────────────────────────────────── */
+    .fleet-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .add-btn {
+      display: flex; align-items: center; gap: .5rem;
+      background: var(--accent); color: #fff;
+      padding: .6rem 1.25rem; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 600;
+      border: none; cursor: pointer; transition: all .25s;
+    }
+    .add-btn:hover { background: #3da855; transform: translateY(-1px); }
+
+    .bikes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .bike-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1.5rem;
+      transition: all .25s;
+    }
+    .bike-item:hover { border-color: var(--accent-d); }
+    .bike-item-header { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: 1rem; }
+    .bike-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .bike-icon.classic    { background: rgba(122,154,107,.15); }
+    .bike-icon.experience { background: var(--terra-dim); }
+    .bike-item-name { font-weight: 600; color: #fff; margin-bottom: .25rem; }
+    .bike-status-dot {
+      display: inline-flex; align-items: center; gap: .35rem;
+      font-size: .75rem; font-weight: 500;
+    }
+    .bike-status-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+    .bike-status-dot.available::before { background: var(--accent); }
+    .bike-status-dot.in_use::before    { background: var(--terra); }
+    .bike-status-dot.maintenance::before { background: var(--warn); }
+    .bike-status-dot.available { color: var(--accent); }
+    .bike-status-dot.in_use    { color: var(--terra); }
+    .bike-status-dot.maintenance { color: var(--warn); }
+    .bike-desc { font-size: .8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
+    .bike-actions { display: flex; gap: .5rem; }
+    .bike-edit-btn {
+      flex: 1; padding: .5rem; border-radius: var(--r-sm);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: .8rem;
+      cursor: pointer; transition: all .2s; text-align: center;
+    }
+    .bike-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .bike-del-btn:hover  { border-color: var(--danger); color: var(--danger); }
+
+    /* ── MODAL ───────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      backdrop-filter: blur(4px); z-index: 500;
+      display: none; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem; width: 100%; max-width: 460px;
+      animation: modalIn .25s ease both;
+    }
+    @keyframes modalIn {
+      from { transform: scale(.96) translateY(8px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 1.5rem; }
+    .modal-label { font-size: .85rem; font-weight: 500; color: var(--text); margin-bottom: .375rem; display: block; }
+    .modal-inp {
+      width: 100%; padding: .8rem 1rem;
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: .9375rem;
+      outline: none; transition: border-color .2s; margin-bottom: 1rem;
+    }
+    .modal-inp:focus { border-color: var(--accent); }
+    .modal-footer { display: flex; gap: .75rem; margin-top: 1.5rem; }
+    .modal-cancel {
+      flex: 1; padding: .875rem;
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); border-radius: 100px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; transition: all .2s;
+    }
+    .modal-cancel:hover { color: var(--text); }
+    .modal-save {
+      flex: 2; padding: .875rem;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 100px; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 600;
+      transition: all .25s;
+    }
+    .modal-save:hover { background: #3da855; }
+
+    /* ── TOAST ───────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 800;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 1rem 1.5rem;
+      color: var(--text); font-size: .9rem; font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      transform: translateY(60px); opacity: 0;
+      transition: all .3s cubic-bezier(.4,0,.2,1);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.ok  { border-left: 3px solid var(--accent); }
+    #toast.err { border-left: 3px solid var(--danger); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .scanner-layout { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .mobile-nav {
+        display: flex; overflow-x: auto;
+        background: var(--surface); border-bottom: 1px solid var(--border);
+        padding: 0 1rem;
+      }
+      .mobile-nav-btn {
+        padding: 1rem .875rem; white-space: nowrap;
+        font-size: .875rem; color: var(--muted); cursor: pointer;
+        border-bottom: 2px solid transparent; transition: all .2s;
+        background: none; border-left: none; border-right: none; border-top: none;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .mobile-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .page { padding: 1.5rem 1rem; }
+    }
+    @media (min-width: 901px) { .mobile-nav { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">Veco<span>Lite</span></div>
+    <div class="login-sub">Espace administrateur</div>
+    <input class="login-inp" type="text" id="loginUser" placeholder="Nom d'utilisateur" value="admin" />
+    <input class="login-inp" type="password" id="loginPass" placeholder="Mot de passe" value="vecolite2024" />
+    <button class="login-btn" onclick="doLogin()">Se connecter</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside>
+      <div class="aside-logo">Veco<span>Lite</span></div>
+      <div class="nav-section">Navigation</div>
+      <button class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard', this)">
+        <span class="ni-icon">📊</span> Tableau de bord
+      </button>
+      <button class="nav-item" data-page="scanner" onclick="switchPage('scanner', this)">
+        <span class="ni-icon">📷</span> Scanner QR
+      </button>
+      <button class="nav-item" data-page="bookings" onclick="switchPage('bookings', this)">
+        <span class="ni-icon">📋</span> Réservations
+      </button>
+      <button class="nav-item" data-page="fleet" onclick="switchPage('fleet', this)">
+        <span class="ni-icon">🚲</span> Flotte
+      </button>
+      <div class="aside-bottom">
+        <div class="user-chip">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <div class="user-name" id="userName">Admin</div>
+          <button class="logout-btn" onclick="logout()">Déco.</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <!-- Mobile nav -->
+      <div class="mobile-nav">
+        <button class="mobile-nav-btn active" onclick="switchPage('dashboard', this)">📊 Tableau de bord</button>
+        <button class="mobile-nav-btn" onclick="switchPage('scanner', this)">📷 Scanner</button>
+        <button class="mobile-nav-btn" onclick="switchPage('bookings', this)">📋 Réservations</button>
+        <button class="mobile-nav-btn" onclick="switchPage('fleet', this)">🚲 Flotte</button>
+      </div>
+
+      <!-- ── DASHBOARD ─────────────────────────────────── -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-title">Tableau de bord</div>
+          <div class="page-sub">Vue d'ensemble en temps réel</div>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+          <!-- filled by JS -->
+        </div>
+        <!-- Recent bookings preview -->
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-toolbar-title">Activité récente</div>
+            <button class="refresh-btn" onclick="loadDashboard()">↻ Actualiser</button>
+          </div>
+          <div id="recentTable"></div>
+        </div>
+      </div>
+
+      <!-- ── SCANNER ───────────────────────────────────── -->
+      <div class="page" id="page-scanner">
+        <div class="page-header">
+          <div class="page-title">Scanner QR Code</div>
+          <div class="page-sub">Scan de retrait (1er scan) ou de retour (2ème scan)</div>
+        </div>
+        <div class="scanner-layout">
+          <div class="scanner-card">
+            <div class="sc-title">📷 Caméra</div>
+            <div id="reader"></div>
+            <div class="scan-controls">
+              <button class="scan-btn start" id="startScanBtn" onclick="startScanner()">▶ Démarrer le scan</button>
+              <button class="scan-btn stop"  id="stopScanBtn"  onclick="stopScanner()" style="display:none">⏹ Arrêter</button>
+            </div>
+            <div class="manual-wrap">
+              <div class="manual-label">Saisie manuelle du token</div>
+              <div class="manual-row">
+                <input class="manual-inp" id="manualToken" placeholder="Token QR (UUID)" />
+                <button class="manual-submit" onclick="manualScan()">→</button>
+              </div>
+            </div>
+          </div>
+          <div class="scan-result" id="scanResult">
+            <div class="sr-title">Résultat du scan</div>
+            <div class="sr-idle">
+              <div class="sr-icon">🔍</div>
+              <div>En attente d'un scan…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BOOKINGS ──────────────────────────────────── -->
+      <div class="page" id="page-bookings">
+        <div class="page-header">
+          <div class="page-title">Réservations</div>
+          <div class="page-sub">Gérez toutes les réservations</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-toolbar-title">Liste des réservations</div>
+            <select class="filter-select" id="statusFilter" onchange="loadBookings()">
+              <option value="">Tous les statuts</option>
+              <option value="pending">En attente</option>
+              <option value="active">En cours</option>
+              <option value="returned">Rendus</option>
+              <option value="cancelled">Annulés</option>
+            </select>
+            <input type="date" class="filter-select" id="dateFilter" onchange="loadBookings()" />
+            <button class="refresh-btn" onclick="loadBookings()">↻</button>
+          </div>
+          <div id="bookingsTable"></div>
+        </div>
+      </div>
+
+      <!-- ── FLEET ─────────────────────────────────────── -->
+      <div class="page" id="page-fleet">
+        <div class="page-header fleet-header">
+          <div>
+            <div class="page-title">Flotte de vélos</div>
+            <div class="page-sub">Gérez votre parc de vélos</div>
+          </div>
+          <button class="add-btn" onclick="openBikeModal()">+ Ajouter un vélo</button>
+        </div>
+        <div class="bikes-grid" id="bikesGrid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- BIKE MODAL -->
+<div class="modal-overlay" id="bikeModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Ajouter un vélo</div>
+    <input type="hidden" id="editBikeId" />
+    <label class="modal-label">Nom du vélo *</label>
+    <input class="modal-inp" type="text" id="bikeName" placeholder="ex: Classique #1" />
+    <label class="modal-label">Type *</label>
+    <select class="modal-inp" id="bikeType">
+      <option value="classic">Vélo Classique</option>
+      <option value="experience">Vélo Expérience</option>
+    </select>
+    <label class="modal-label">Statut</label>
+    <select class="modal-inp" id="bikeStatus">
+      <option value="available">Disponible</option>
+      <option value="maintenance">En maintenance</option>
+    </select>
+    <label class="modal-label">Description</label>
+    <input class="modal-inp" type="text" id="bikeDesc" placeholder="ex: Vélo rouge, cadre aluminium" />
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeBikeModal()">Annuler</button>
+      <button class="modal-save" onclick="saveBike()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────────────────
+  const API = window.location.hostname === 'localhost' ? 'http://localhost:8000' : '';
+  let token = null;
+  let scanner = null;
+
+  const BIKE_LABELS = { classic: 'Vélo Classique', experience: 'Vélo Expérience' };
+  const DUR_LABELS  = { '3h': '3 heures', day: 'Journée' };
+  const STATUS_FR   = { pending: 'En attente', active: 'En cours', returned: 'Rendu', cancelled: 'Annulé' };
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    try {
+      const res = await fetch(`${API}/api/admin/login`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p }),
+      });
+      if (!res.ok) { document.getElementById('loginErr').textContent = 'Identifiants incorrects.'; return; }
+      const data = await res.json();
+      token = data.access_token;
+      localStorage.setItem('vl_token', token);
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      loadDashboard();
+    } catch {
+      document.getElementById('loginErr').textContent = 'Erreur de connexion au serveur.';
+    }
+  }
+
+  function logout() {
+    token = null; localStorage.removeItem('vl_token');
+    location.reload();
+  }
+
+  // Check saved token
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = localStorage.getItem('vl_token');
+    if (saved) {
+      token = saved;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('app').classList.add('visible');
+      loadDashboard();
+    }
+    // login on Enter
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  });
+
+  // ── API helper ────────────────────────────────────────────────────────────
+  async function api(path, opts = {}) {
+    const r = await fetch(`${API}${path}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...opts.headers },
+      ...opts,
+    });
+    if (r.status === 401) { logout(); throw new Error('Non autorisé'); }
+    return r;
+  }
+
+  // ── Page switch ───────────────────────────────────────────────────────────
+  function switchPage(name, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item, .mobile-nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`page-${name}`).classList.add('active');
+    if (btn) {
+      btn.classList.add('active');
+      // Also sync the other nav (sidebar <-> mobile)
+      document.querySelectorAll(`[data-page="${name}"]`).forEach(b => b.classList.add('active'));
+    }
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'bookings')  loadBookings();
+    if (name === 'fleet')     loadFleet();
+    if (name !== 'scanner')   stopScanner();
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const r = await api('/api/admin/stats');
+      const s = await r.json();
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card accent">
+          <div class="stat-card-label">En cours</div>
+          <div class="stat-card-value">${s.active}</div>
+          <div class="stat-card-sub">vélos sortis</div>
+        </div>
+        <div class="stat-card terra">
+          <div class="stat-card-label">En attente</div>
+          <div class="stat-card-value">${s.pending}</div>
+          <div class="stat-card-sub">à récupérer</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-card-label">Disponibles</div>
+          <div class="stat-card-value">${s.available_bikes}<span style="font-size:1.5rem">/${s.total_bikes}</span></div>
+          <div class="stat-card-sub">vélos libres</div>
+        </div>
+        <div class="stat-card revenue">
+          <div class="stat-card-label">Revenus rendus</div>
+          <div class="stat-card-value" style="font-size:1.75rem">${s.revenue.toLocaleString('fr')}</div>
+          <div class="stat-card-sub">FCFA encaissés</div>
+        </div>`;
+
+      // Recent bookings
+      const rb = await api('/api/admin/bookings');
+      const recent = (await rb.json()).slice(0, 8);
+      renderBookingTable(recent, 'recentTable', true);
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  // ── Bookings ──────────────────────────────────────────────────────────────
+  async function loadBookings() {
+    const status = document.getElementById('statusFilter').value;
+    const date   = document.getElementById('dateFilter').value;
+    let url = '/api/admin/bookings?';
+    if (status) url += `status=${status}&`;
+    if (date)   url += `date=${date}&`;
+    try {
+      const r = await api(url);
+      const data = await r.json();
+      renderBookingTable(data, 'bookingsTable', false);
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  function renderBookingTable(rows, containerId, compact) {
+    const el = document.getElementById(containerId);
+    if (!rows.length) {
+      el.innerHTML = `<div class="empty-state"><div class="ei">📭</div><div>Aucune réservation</div></div>`;
+      return;
+    }
+    const cols = compact
+      ? ['Code', 'Client', 'Vélo', 'Date', 'Statut']
+      : ['Code', 'Client', 'Téléphone', 'Vélo', 'Formule', 'Date / Heure', 'Statut', 'Actions'];
+
+    let html = `<table><thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+    for (const b of rows) {
+      const bikeLabel = BIKE_LABELS[b.bike_type] || b.bike_type;
+      const durLabel  = DUR_LABELS[b.duration_type] || b.duration_type;
+      const statusBadge = `<span class="badge ${b.status}">${STATUS_FR[b.status] || b.status}</span>`;
+      const bikeTag = `<span class="bike-tag ${b.bike_type}">${bikeLabel}</span>`;
+      if (compact) {
+        html += `<tr>
+          <td class="mono">${b.booking_code}</td>
+          <td>${b.client_name}</td>
+          <td>${bikeTag}</td>
+          <td>${b.booking_date}</td>
+          <td>${statusBadge}</td>
+        </tr>`;
+      } else {
+        html += `<tr>
+          <td class="mono">${b.booking_code}</td>
+          <td><strong>${b.client_name}</strong></td>
+          <td class="mono" style="font-size:.8rem">${b.client_phone}</td>
+          <td>${bikeTag}<br><span style="font-size:.75rem;color:var(--muted)">${durLabel}</span></td>
+          <td>${b.price.toLocaleString('fr')} F</td>
+          <td>${b.booking_date} ${b.booking_time}</td>
+          <td>${statusBadge}</td>
+          <td>${
+            ['pending','active'].includes(b.status)
+              ? `<button class="action-btn danger" onclick="cancelBooking(${b.id})">Annuler</button>`
+              : '—'
+          }</td>
+        </tr>`;
+      }
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  async function cancelBooking(id) {
+    if (!confirm('Annuler cette réservation ?')) return;
+    try {
+      const r = await api(`/api/admin/bookings/${id}/cancel`, { method: 'PUT' });
+      if (!r.ok) throw new Error('Erreur lors de l\'annulation');
+      showToast('Réservation annulée', 'ok');
+      loadBookings();
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  // ── QR Scanner ────────────────────────────────────────────────────────────
+  function startScanner() {
+    if (scanner) return;
+    scanner = new Html5Qrcode('reader');
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 260 } },
+      onScanSuccess,
+      () => {}
+    ).then(() => {
+      document.getElementById('startScanBtn').style.display = 'none';
+      document.getElementById('stopScanBtn').style.display  = '';
+    }).catch(e => showToast('Impossible d\'accéder à la caméra: ' + e, 'err'));
+  }
+
+  function stopScanner() {
+    if (!scanner) return;
+    scanner.stop().then(() => {
+      scanner.clear();
+      scanner = null;
+      document.getElementById('startScanBtn').style.display = '';
+      document.getElementById('stopScanBtn').style.display  = 'none';
+    }).catch(() => {});
+  }
+
+  function onScanSuccess(raw) {
+    stopScanner();
+    processScanToken(raw);
+  }
+
+  function manualScan() {
+    const t = document.getElementById('manualToken').value.trim();
+    if (!t) { showToast('Entrez un token', 'err'); return; }
+    processScanToken(t);
+    document.getElementById('manualToken').value = '';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('manualToken').addEventListener('keydown', e => {
+      if (e.key === 'Enter') manualScan();
+    });
+  });
+
+  async function processScanToken(raw) {
+    const token_val = raw.replace('VECOLITE:', '').trim();
+    const el = document.getElementById('scanResult');
+    el.innerHTML = `<div class="sr-title">Résultat du scan</div><div class="sr-idle"><div class="sr-icon">⏳</div><div>Traitement en cours…</div></div>`;
+    try {
+      const r = await api('/api/scan/', {
+        method: 'POST',
+        body: JSON.stringify({ token: token_val }),
+      });
+      const data = await r.json();
+      renderScanResult(data);
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  function renderScanResult(data) {
+    const el = document.getElementById('scanResult');
+    const ok = data.success;
+    const b  = data.booking || {};
+    const actionBadge = data.action === 'pickup'
+      ? '<span class="sr-action-badge pickup">📤 Retrait</span>'
+      : data.action === 'return'
+        ? '<span class="sr-action-badge return">📥 Retour</span>'
+        : '';
+
+    let fields = '';
+    if (b.booking_code) fields += `<div class="sr-field"><span class="sr-key">Code</span><span class="sr-val mono">${b.booking_code}</span></div>`;
+    if (b.client_name)  fields += `<div class="sr-field"><span class="sr-key">Client</span><span class="sr-val">${b.client_name}</span></div>`;
+    if (b.bike_name)    fields += `<div class="sr-field"><span class="sr-key">Vélo attribué</span><span class="sr-val">${b.bike_name}</span></div>`;
+    if (b.duration_type) fields += `<div class="sr-field"><span class="sr-key">Formule</span><span class="sr-val">${DUR_LABELS[b.duration_type]||b.duration_type}</span></div>`;
+    if (b.duration)     fields += `<div class="sr-field"><span class="sr-key">Durée réelle</span><span class="sr-val">${b.duration}</span></div>`;
+    if (b.status)       fields += `<div class="sr-field"><span class="sr-key">Nouveau statut</span><span class="sr-val"><span class="badge ${b.status}">${STATUS_FR[b.status]||b.status}</span></span></div>`;
+
+    el.innerHTML = `
+      <div class="sr-title">Résultat du scan</div>
+      <div class="${ok ? 'sr-success' : 'sr-fail'}">
+        <div class="sr-msg">${data.message}</div>
+        ${actionBadge}
+        <div class="sr-fields" style="margin-top:1rem">${fields}</div>
+      </div>`;
+
+    showToast(data.message, ok ? 'ok' : 'err');
+    // Refresh dashboard stats
+    if (ok) loadDashboard();
+  }
+
+  // ── Fleet ─────────────────────────────────────────────────────────────────
+  async function loadFleet() {
+    try {
+      const r = await api('/api/admin/bikes');
+      const bikes = await r.json();
+      const el = document.getElementById('bikesGrid');
+      if (!bikes.length) {
+        el.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="ei">🚲</div><div>Aucun vélo dans la flotte. Ajoutez-en un !</div></div>`;
+        return;
+      }
+      el.innerHTML = bikes.map(b => `
+        <div class="bike-item" id="bike-${b.id}">
+          <div class="bike-item-header">
+            <div class="bike-icon ${b.type}">${b.type === 'classic' ? '🚲' : '⚡'}</div>
+            <div>
+              <div class="bike-item-name">${b.name}</div>
+              <span class="bike-status-dot ${b.status}">${statusLabel(b.status)}</span>
+            </div>
+            <span class="bike-tag ${b.type}" style="margin-left:auto">${b.type === 'classic' ? 'Classique' : 'Expérience'}</span>
+          </div>
+          ${b.description ? `<div class="bike-desc">${b.description}</div>` : ''}
+          <div class="bike-actions">
+            <button class="bike-edit-btn" onclick='openBikeModal(${JSON.stringify(b)})'>✏️ Modifier</button>
+            <button class="bike-edit-btn bike-del-btn" onclick="deleteBike(${b.id})">🗑️ Supprimer</button>
+          </div>
+        </div>`).join('');
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  function statusLabel(s) {
+    return { available: 'Disponible', in_use: 'En utilisation', maintenance: 'Maintenance' }[s] || s;
+  }
+
+  // Bike modal
+  function openBikeModal(bike) {
+    document.getElementById('editBikeId').value  = bike ? bike.id  : '';
+    document.getElementById('bikeName').value    = bike ? bike.name : '';
+    document.getElementById('bikeType').value    = bike ? bike.type : 'classic';
+    document.getElementById('bikeStatus').value  = bike ? bike.status : 'available';
+    document.getElementById('bikeDesc').value    = bike ? (bike.description || '') : '';
+    document.getElementById('modalTitle').textContent = bike ? 'Modifier le vélo' : 'Ajouter un vélo';
+    document.getElementById('bikeModal').classList.add('open');
+  }
+
+  function closeBikeModal() { document.getElementById('bikeModal').classList.remove('open'); }
+
+  async function saveBike() {
+    const id   = document.getElementById('editBikeId').value;
+    const name = document.getElementById('bikeName').value.trim();
+    const type = document.getElementById('bikeType').value;
+    const status = document.getElementById('bikeStatus').value;
+    const desc = document.getElementById('bikeDesc').value.trim();
+    if (!name) { showToast('Nom requis', 'err'); return; }
+    try {
+      const url = id ? `/api/admin/bikes/${id}` : '/api/admin/bikes';
+      const method = id ? 'PUT' : 'POST';
+      const r = await api(url, { method, body: JSON.stringify({ name, type, status, description: desc || null }) });
+      if (!r.ok) throw new Error('Erreur');
+      showToast(id ? 'Vélo mis à jour' : 'Vélo ajouté', 'ok');
+      closeBikeModal();
+      loadFleet();
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  async function deleteBike(id) {
+    if (!confirm('Supprimer ce vélo définitivement ?')) return;
+    try {
+      const r = await api(`/api/admin/bikes/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error('Erreur lors de la suppression');
+      showToast('Vélo supprimé', 'ok');
+      loadFleet();
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('bikeModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('bikeModal')) closeBikeModal();
+  });
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    clearTimeout(toastTimer);
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    toastTimer = setTimeout(() => { t.className = ''; }, 4000);
+  }
+</script>
+</body>
+</html>

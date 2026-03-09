@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.local
+vecolite.db
+.vercel/
+node_modules/
+.DS_Store
+*.log
