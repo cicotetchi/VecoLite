@@ -1,11 +1,46 @@
+# ── Secrets & credentials ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ── Base de données ────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+vecolite.db
+
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.env
-.env.local
-vecolite.db
+*.pycache
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ── Vercel ────────────────────────────────────────────────────────────────────
 .vercel/
+
+# ── Node (pour le CLI Vercel installé localement) ─────────────────────────────
 node_modules/
+package-lock.json
+
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 *.log
