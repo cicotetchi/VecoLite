@@ -52,12 +52,8 @@
       border-radius: 20px; padding: 3rem; width: 100%; max-width: 400px;
       text-align: center;
     }
-    .login-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2rem; font-weight: 700;
-      color: #fff; margin-bottom: .25rem;
-    }
-    .login-logo span { color: #4CAF67; }
+    .login-logo { display: flex; justify-content: center; margin-bottom: .25rem; }
+    .login-logo img { height: 64px; width: auto; border-radius: 14px; }
     .login-sub { font-size: .875rem; color: var(--muted); margin-bottom: 2.5rem; }
     .login-inp {
       width: 100%; padding: .875rem 1rem;
@@ -89,12 +85,8 @@
       display: flex; flex-direction: column; padding: 1.5rem 1rem;
       position: sticky; top: 0; height: 100vh; overflow-y: auto;
     }
-    .aside-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.5rem; font-weight: 700; color: #fff;
-      padding: .5rem; margin-bottom: 2rem;
-    }
-    .aside-logo span { color: var(--accent); }
+    .aside-logo { padding: .5rem; margin-bottom: 2rem; }
+    .aside-logo img { height: 40px; width: auto; border-radius: 8px; display: block; }
     .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 0 .5rem; margin-bottom: .5rem; }
     .nav-item {
       display: flex; align-items: center; gap: .75rem;
@@ -444,7 +436,7 @@
 <!-- LOGIN -->
 <div id="loginOverlay">
   <div class="login-card">
-    <div class="login-logo">Veco<span>Lite</span></div>
+    <div class="login-logo"><img src="/logo.jpeg" alt="VecoLite" /></div>
     <div class="login-sub">Espace administrateur</div>
     <input class="login-inp" type="text" id="loginUser" placeholder="Nom d'utilisateur" value="admin" />
     <input class="login-inp" type="password" id="loginPass" placeholder="Mot de passe" value="vecolite2024" />
@@ -458,7 +450,7 @@
   <div class="shell">
     <!-- Sidebar -->
     <aside>
-      <div class="aside-logo">Veco<span>Lite</span></div>
+      <div class="aside-logo"><img src="/logo.jpeg" alt="VecoLite" /></div>
       <div class="nav-section">Navigation</div>
       <button class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard', this)">
         <span class="ni-icon">📊</span> Tableau de bord
