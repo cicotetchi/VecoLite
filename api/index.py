@@ -1,12 +1,20 @@
 import os
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from mangum import Mangum
 
-from .database import engine, Base
-from .routers import bookings, admin, scan
+# Vercel compatibility: relative imports require the package to be recognised.
+# Fallback to absolute imports when running as a flat module.
+try:
+    from .database import engine, Base
+    from .routers import bookings, admin, scan
+except ImportError:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from database import engine, Base          # noqa: E402
+    from routers import bookings, admin, scan  # noqa: E402
 
 # Create tables on startup
 Base.metadata.create_all(bind=engine)

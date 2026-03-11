@@ -1006,7 +1006,7 @@
       <a href="#book">Réserver</a>
       <a href="#parcours">Comment ça marche</a>
       <a href="#tarifs">Tarifs</a>
-      <a href="/admin/">Administration</a>
+      <a href="/admin">Administration</a>
     </div>
   </div>
   <p class="footer-copy">© 2024 VecoLite. Tous droits réservés.</p>
@@ -1123,7 +1123,7 @@
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Erreur'); }
       const data = await res.json();
       sessionStorage.setItem('vecolite_booking', JSON.stringify(data));
-      window.location.href = '/confirmation.html';
+      window.location.href = '/confirmation';
     } catch (e) {
       document.getElementById('loading').classList.remove('on');
       btn.disabled = false; txt.textContent = 'Confirmer & partir →';
