@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from mangum import Mangum
 
 # Vercel compatibility: relative imports require the package to be recognised.
 # Fallback to absolute imports when running as a flat module.
@@ -51,5 +50,5 @@ if not os.environ.get("VERCEL"):
         app.mount("/", StaticFiles(directory=_public, html=True), name="static")
 
 
-# Vercel serverless handler
-handler = Mangum(app, lifespan="off")
+# Vercel Python runtime détecte nativement les apps ASGI (FastAPI/Starlette).
+# Mangum n'est plus nécessaire et causait un TypeError dans vc_init.py.
