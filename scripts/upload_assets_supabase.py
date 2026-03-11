@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """
 Upload des assets statiques VecoLite vers Supabase Storage.
+Utilise uniquement la bibliothèque standard Python (pas de dépendances).
 
 Usage :
     SUPABASE_SERVICE_KEY="votre-service-role-key" python3 scripts/upload_assets_supabase.py
 
 Où trouver la clé :
     Supabase Dashboard → Project → Settings → API → service_role (secret)
-
-Les fichiers uploadés seront accessibles publiquement via :
-    https://xlpypozfpuemuanhnoxh.supabase.co/storage/v1/object/public/assets/<fichier>
 """
 
-import os
-import sys
-import requests
+import os, sys, json
+import urllib.request, urllib.error
 
 SUPABASE_URL = "https://xlpypozfpuemuanhnoxh.supabase.co"
 BUCKET       = "assets"
@@ -29,65 +26,58 @@ ASSETS = [
 ]
 
 
+def request(url, method="GET", data=None, extra_headers=None, key=""):
+    h = {"Authorization": f"Bearer {key}", "apikey": key, **(extra_headers or {})}
+    req = urllib.request.Request(url, data=data, headers=h, method=method)
+    try:
+        with urllib.request.urlopen(req) as r:
+            return r.status, r.read().decode()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode()
+
+
 def main():
     key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
     if not key:
         print("❌  Variable SUPABASE_SERVICE_KEY manquante.")
-        print()
-        print("   Exécute :")
         print('   SUPABASE_SERVICE_KEY="ta-clé" python3 scripts/upload_assets_supabase.py')
-        print()
-        print("   Clé disponible sur :")
-        print("   Supabase → Settings → API → service_role")
         sys.exit(1)
 
-    headers = {"Authorization": f"Bearer {key}", "apikey": key}
-
-    # ── Création du bucket public ──────────────────────────────────────────
-    r = requests.post(
-        f"{SUPABASE_URL}/storage/v1/bucket",
-        headers=headers,
-        json={"id": BUCKET, "name": BUCKET, "public": True},
+    # Créer bucket public
+    body = json.dumps({"id": BUCKET, "name": BUCKET, "public": True}).encode()
+    status, resp = request(
+        f"{SUPABASE_URL}/storage/v1/bucket", "POST", body,
+        {"Content-Type": "application/json"}, key
     )
-    if r.status_code in (200, 201):
+    if status in (200, 201):
         print(f"✅  Bucket « {BUCKET} » créé (public)")
-    elif r.status_code == 409:
+    elif status == 409:
         print(f"ℹ️   Bucket « {BUCKET} » existe déjà")
     else:
-        print(f"⚠️   Bucket : {r.status_code} — {r.text}")
+        print(f"⚠️   Bucket : {status} — {resp}")
 
-    # ── Upload des fichiers ────────────────────────────────────────────────
+    # Uploader les fichiers
     print()
     uploaded = []
-    for filename, content_type in ASSETS:
+    for filename, ctype in ASSETS:
         path = os.path.join(PUBLIC_DIR, filename)
         if not os.path.exists(path):
-            print(f"⚠️   Introuvable localement : {path}")
+            print(f"⚠️   Introuvable : {path}")
             continue
-
         with open(path, "rb") as f:
             data = f.read()
-
-        r = requests.post(
+        status, resp = request(
             f"{SUPABASE_URL}/storage/v1/object/{BUCKET}/{filename}",
-            headers={**headers, "Content-Type": content_type, "x-upsert": "true"},
-            data=data,
+            "POST", data, {"Content-Type": ctype, "x-upsert": "true"}, key
         )
-        if r.status_code in (200, 201):
-            url = f"{CDN_BASE}/{filename}"
-            print(f"✅  {filename:<30} → {url}")
+        if status in (200, 201):
+            print(f"✅  {filename:<30}  →  {CDN_BASE}/{filename}")
             uploaded.append(filename)
         else:
-            print(f"❌  {filename} : {r.status_code} — {r.text}")
+            print(f"❌  {filename} : {status} — {resp}")
 
-    # ── Résumé ────────────────────────────────────────────────────────────
     print()
-    print(f"🏁  {len(uploaded)}/{len(ASSETS)} fichiers uploadés")
-    if uploaded:
-        print()
-        print("   URLs Supabase CDN :")
-        for f in uploaded:
-            print(f"   {CDN_BASE}/{f}")
+    print(f"🏁  {len(uploaded)}/{len(ASSETS)} fichiers uploadés sur Supabase Storage")
 
 
 if __name__ == "__main__":
