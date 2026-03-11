@@ -1,18 +1,40 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import NullPool
 
-# Use /tmp for Vercel serverless (ephemeral), local file for dev
-# For production, set DATABASE_URL env var to a PostgreSQL/Turso URL
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    f"sqlite:////tmp/vecolite.db" if os.environ.get("VERCEL") else "sqlite:///./vecolite.db"
-)
+# ── Résolution de l'URL de base de données ────────────────────────────────
+_raw_url = os.environ.get("DATABASE_URL", "")
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+if _raw_url:
+    # Normalisation : Supabase/Heroku renvoient parfois "postgres://"
+    # mais SQLAlchemy 2.x exige "postgresql://"
+    DATABASE_URL = _raw_url.replace("postgres://", "postgresql://", 1)
+    IS_POSTGRES = True
+else:
+    # Fallback local : SQLite
+    DATABASE_URL = (
+        "sqlite:////tmp/vecolite.db"
+        if os.environ.get("VERCEL")
+        else "sqlite:///./vecolite.db"
+    )
+    IS_POSTGRES = False
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+# ── Création du moteur ────────────────────────────────────────────────────
+if IS_POSTGRES:
+    # NullPool : indispensable en serverless (Vercel) pour éviter
+    # les connexions fantômes entre invocations Lambda
+    engine = create_engine(
+        DATABASE_URL,
+        poolclass=NullPool,
+        pool_pre_ping=True,
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
