@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -43,3 +43,35 @@ class Booking(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     pickup_at = Column(DateTime, nullable=True)
     return_at = Column(DateTime, nullable=True)
+
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    title       = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    date        = Column(String, nullable=False)   # YYYY-MM-DD
+    time        = Column(String, nullable=True)    # HH:MM
+    location    = Column(String, nullable=True)
+    image_url   = Column(String, nullable=True)
+    max_participants = Column(Integer, default=0)  # 0 = illimité
+    price       = Column(Integer, default=0)       # 0 = gratuit (FCFA)
+    status      = Column(String, default="active") # active | draft | cancelled
+    created_at  = Column(DateTime, default=datetime.utcnow)
+
+    registrations = relationship("EventRegistration", back_populates="event",
+                                 cascade="all, delete-orphan")
+
+
+class EventRegistration(Base):
+    __tablename__ = "event_registrations"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    event_id    = Column(Integer, ForeignKey("events.id"), nullable=False)
+    client_name  = Column(String, nullable=False)
+    client_phone = Column(String, nullable=False)
+    client_email = Column(String, nullable=True)
+    registered_at = Column(DateTime, default=datetime.utcnow)
+
+    event = relationship("Event", back_populates="registrations")

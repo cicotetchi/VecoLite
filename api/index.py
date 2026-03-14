@@ -9,11 +9,11 @@ from fastapi.responses import FileResponse
 # Fallback to absolute imports when running as a flat module.
 try:
     from .database import engine, Base
-    from .routers import bookings, admin, scan
+    from .routers import bookings, admin, scan, events
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from database import engine, Base          # noqa: E402
-    from routers import bookings, admin, scan  # noqa: E402
+    from routers import bookings, admin, scan, events  # noqa: E402
 
 # Create tables on startup
 Base.metadata.create_all(bind=engine)
@@ -35,6 +35,7 @@ app.add_middleware(
 app.include_router(bookings.router)
 app.include_router(admin.router)
 app.include_router(scan.router)
+app.include_router(events.router)
 
 
 @app.get("/api/health")

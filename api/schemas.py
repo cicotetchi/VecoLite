@@ -74,6 +74,68 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
+# ── Events ────────────────────────────────────────────────────────────────────
+
+class EventCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    date: str
+    time: Optional[str] = None
+    location: Optional[str] = None
+    image_url: Optional[str] = None
+    max_participants: int = 0
+    price: int = 0
+    status: str = "active"
+
+
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    location: Optional[str] = None
+    image_url: Optional[str] = None
+    max_participants: Optional[int] = None
+    price: Optional[int] = None
+    status: Optional[str] = None
+
+
+class EventResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    date: str
+    time: Optional[str]
+    location: Optional[str]
+    image_url: Optional[str]
+    max_participants: int
+    price: int
+    status: str
+    participants_count: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class RegistrationCreate(BaseModel):
+    client_name: str
+    client_phone: str
+    client_email: Optional[str] = None
+
+
+class RegistrationResponse(BaseModel):
+    id: int
+    event_id: int
+    client_name: str
+    client_phone: str
+    client_email: Optional[str]
+    registered_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ── QR Scan ───────────────────────────────────────────────────────────────────
 
 class ScanRequest(BaseModel):

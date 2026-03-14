@@ -317,6 +317,50 @@
     .add-btn:hover { background: #3da855; transform: translateY(-1px); }
 
     .bikes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+
+    /* ── ÉVÉNEMENTS ───────────────────────────────────────── */
+    .ev-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .ev-table th { text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); padding:.6rem 1rem; border-bottom:1px solid var(--border); }
+    .ev-table td { padding:.9rem 1rem; border-bottom:1px solid var(--border); font-size:.9rem; vertical-align:middle; }
+    .ev-table tr:hover td { background: var(--surface2); }
+    .ev-status { display:inline-block; padding:.25rem .65rem; border-radius:100px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+    .ev-status.active   { background:rgba(76,175,103,.15); color:#4CAF67; }
+    .ev-status.draft    { background:rgba(200,150,42,.15);  color:#C8962A; }
+    .ev-status.cancelled{ background:rgba(239,68,68,.12);   color:#EF4444; }
+    .ev-actions { display:flex; gap:.5rem; }
+    .ev-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:.35rem .7rem; font-size:.78rem; cursor:pointer; color:var(--muted); transition:all .2s; }
+    .ev-btn:hover { color:#fff; border-color:var(--accent); background:var(--accent); }
+    .ev-btn.del:hover { border-color:#EF4444; background:#EF4444; }
+    .ev-btn.reg:hover { border-color:#C8962A; background:#C8962A; }
+
+    /* Panel inscriptions */
+    #reg-panel { display:none; margin-top:1.5rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.5rem; }
+    #reg-panel.open { display:block; }
+    .reg-panel-title { font-weight:700; color:#fff; margin-bottom:1rem; font-size:1rem; display:flex; justify-content:space-between; align-items:center; }
+    .reg-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    .reg-table th { color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; padding:.5rem .75rem; text-align:left; }
+    .reg-table td { padding:.7rem .75rem; border-top:1px solid var(--border); color:var(--text); }
+
+    /* Formulaire événement */
+    #ev-form-wrap { display:none; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:1.75rem; margin-bottom:1.5rem; }
+    #ev-form-wrap.open { display:block; }
+    .ev-form-title { font-weight:700; color:#fff; font-size:1rem; margin-bottom:1.25rem; }
+    .ev-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .ev-form-full { grid-column:1/-1; }
+    .ev-inp {
+      width:100%; padding:.75rem 1rem;
+      background:var(--bg); border:1.5px solid var(--border);
+      border-radius:var(--r-sm); color:var(--text);
+      font-family:'DM Sans',sans-serif; font-size:.9rem;
+      outline:none; transition:border-color .2s; box-sizing:border-box;
+    }
+    .ev-inp:focus { border-color:var(--accent); }
+    .ev-inp-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); display:block; margin-bottom:.35rem; }
+    .ev-form-actions { display:flex; gap:.75rem; margin-top:1.25rem; }
+    .ev-save-btn { background:var(--accent); color:#fff; border:none; border-radius:100px; padding:.65rem 1.5rem; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:600; cursor:pointer; transition:all .25s; }
+    .ev-save-btn:hover { background:#3da855; }
+    .ev-cancel-btn { background:none; color:var(--muted); border:1px solid var(--border); border-radius:100px; padding:.65rem 1.5rem; font-family:'DM Sans',sans-serif; font-size:.9rem; cursor:pointer; transition:all .25s; }
+    .ev-cancel-btn:hover { color:var(--text); }
     .bike-item {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--r); padding: 1.5rem;
@@ -468,6 +512,9 @@
       <button class="nav-item" data-page="fleet" onclick="switchPage('fleet', this)">
         <span class="ni-icon">🚲</span> Flotte
       </button>
+      <button class="nav-item" data-page="events" onclick="switchPage('events', this)">
+        <span class="ni-icon">🗓️</span> Événements
+      </button>
       <div class="aside-bottom">
         <div class="user-chip">
           <div class="user-avatar" id="userAvatar">A</div>
@@ -570,6 +617,87 @@
           <button class="add-btn" onclick="openBikeModal()">+ Ajouter un vélo</button>
         </div>
         <div class="bikes-grid" id="bikesGrid"></div>
+      </div>
+
+      <!-- ── ÉVÉNEMENTS ─────────────────────────────────── -->
+      <div class="page" id="page-events">
+        <div class="page-header fleet-header">
+          <div>
+            <div class="page-title">Événements</div>
+            <div class="page-sub">Créez et gérez les événements visibles sur le site</div>
+          </div>
+          <button class="add-btn" onclick="showEventForm(null)">+ Nouvel événement</button>
+        </div>
+
+        <!-- Formulaire inline -->
+        <div id="ev-form-wrap">
+          <div class="ev-form-title" id="ev-form-title">Nouvel événement</div>
+          <input type="hidden" id="ev-id" />
+          <div class="ev-form-grid">
+            <div>
+              <label class="ev-inp-label">Titre *</label>
+              <input class="ev-inp" type="text" id="ev-title" placeholder="ex: Balade au coucher de soleil" />
+            </div>
+            <div>
+              <label class="ev-inp-label">Date *</label>
+              <input class="ev-inp" type="date" id="ev-date" />
+            </div>
+            <div>
+              <label class="ev-inp-label">Heure</label>
+              <input class="ev-inp" type="time" id="ev-time" placeholder="ex: 17:00" />
+            </div>
+            <div>
+              <label class="ev-inp-label">Lieu</label>
+              <input class="ev-inp" type="text" id="ev-location" placeholder="ex: Plage de N'Gor" />
+            </div>
+            <div>
+              <label class="ev-inp-label">Prix (FCFA) — 0 = gratuit</label>
+              <input class="ev-inp" type="number" id="ev-price" value="0" min="0" step="500" />
+            </div>
+            <div>
+              <label class="ev-inp-label">Places max — 0 = illimité</label>
+              <input class="ev-inp" type="number" id="ev-max" value="0" min="0" />
+            </div>
+            <div class="ev-form-full">
+              <label class="ev-inp-label">URL de l'image (optionnel)</label>
+              <input class="ev-inp" type="url" id="ev-image" placeholder="https://…" />
+            </div>
+            <div class="ev-form-full">
+              <label class="ev-inp-label">Description</label>
+              <textarea class="ev-inp" id="ev-desc" rows="3" placeholder="Décrivez l'événement…" style="resize:vertical"></textarea>
+            </div>
+            <div>
+              <label class="ev-inp-label">Statut</label>
+              <select class="ev-inp" id="ev-status">
+                <option value="active">Actif (visible)</option>
+                <option value="draft">Brouillon (masqué)</option>
+                <option value="cancelled">Annulé</option>
+              </select>
+            </div>
+          </div>
+          <div class="ev-form-actions">
+            <button class="ev-save-btn" onclick="saveEvent()">💾 Enregistrer</button>
+            <button class="ev-cancel-btn" onclick="hideEventForm()">Annuler</button>
+          </div>
+        </div>
+
+        <!-- Tableau des événements -->
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-toolbar-title">Liste des événements</div>
+            <button class="refresh-btn" onclick="loadAdminEvents()">↻ Actualiser</button>
+          </div>
+          <div id="evTableWrap"></div>
+        </div>
+
+        <!-- Panel inscriptions -->
+        <div id="reg-panel">
+          <div class="reg-panel-title">
+            <span id="reg-panel-title-text">Inscriptions</span>
+            <button class="ev-cancel-btn" onclick="closeRegPanel()" style="font-size:.8rem;padding:.4rem 1rem">✕ Fermer</button>
+          </div>
+          <div id="reg-panel-body"></div>
+        </div>
       </div>
     </main>
   </div>
@@ -676,6 +804,7 @@
     if (name === 'dashboard') loadDashboard();
     if (name === 'bookings')  loadBookings();
     if (name === 'fleet')     loadFleet();
+    if (name === 'events')    loadAdminEvents();
     if (name !== 'scanner')   stopScanner();
   }
 
@@ -948,6 +1077,150 @@
   document.getElementById('bikeModal').addEventListener('click', e => {
     if (e.target === document.getElementById('bikeModal')) closeBikeModal();
   });
+
+  // ── Événements ────────────────────────────────────────────────────────────
+  let evEditId = null;
+
+  async function loadAdminEvents() {
+    try {
+      const r = await api('/api/admin/events');
+      const events = await r.json();
+      renderAdminEvents(events);
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  function renderAdminEvents(events) {
+    const el = document.getElementById('evTableWrap');
+    if (!events.length) {
+      el.innerHTML = `<div class="empty-state"><div class="ei">🗓️</div><div>Aucun événement. Créez-en un !</div></div>`;
+      return;
+    }
+    let html = `<table class="ev-table">
+      <thead><tr>
+        <th>Titre</th><th>Date</th><th>Lieu</th><th>Prix</th><th>Places</th><th>Statut</th><th>Actions</th>
+      </tr></thead><tbody>`;
+    for (const ev of events) {
+      const priceTxt = ev.price > 0 ? `${ev.price.toLocaleString('fr')} F` : 'Gratuit';
+      const placesTxt = ev.max_participants > 0
+        ? `${ev.participants_count}/${ev.max_participants}`
+        : `${ev.participants_count} / ∞`;
+      html += `<tr>
+        <td><strong>${ev.title}</strong></td>
+        <td>${ev.date}${ev.time ? ' ' + ev.time : ''}</td>
+        <td>${ev.location || '—'}</td>
+        <td>${priceTxt}</td>
+        <td>${placesTxt}</td>
+        <td><span class="ev-status ${ev.status}">${{active:'Actif',draft:'Brouillon',cancelled:'Annulé'}[ev.status]||ev.status}</span></td>
+        <td>
+          <div class="ev-actions">
+            <button class="ev-btn" onclick='showEventForm(${JSON.stringify(ev)})'>✏️ Modifier</button>
+            <button class="ev-btn reg" onclick="showEventRegistrations(${ev.id}, '${ev.title.replace(/'/g,"\\'")}')">👥 ${ev.participants_count}</button>
+            <button class="ev-btn del" onclick="deleteEvent(${ev.id})">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  function showEventForm(ev) {
+    evEditId = ev ? ev.id : null;
+    document.getElementById('ev-form-title').textContent = ev ? 'Modifier l\'événement' : 'Nouvel événement';
+    document.getElementById('ev-id').value       = ev ? ev.id : '';
+    document.getElementById('ev-title').value    = ev ? ev.title : '';
+    document.getElementById('ev-date').value     = ev ? ev.date : '';
+    document.getElementById('ev-time').value     = ev ? (ev.time || '') : '';
+    document.getElementById('ev-location').value = ev ? (ev.location || '') : '';
+    document.getElementById('ev-price').value    = ev ? ev.price : 0;
+    document.getElementById('ev-max').value      = ev ? ev.max_participants : 0;
+    document.getElementById('ev-image').value    = ev ? (ev.image_url || '') : '';
+    document.getElementById('ev-desc').value     = ev ? (ev.description || '') : '';
+    document.getElementById('ev-status').value   = ev ? ev.status : 'active';
+    document.getElementById('ev-form-wrap').classList.add('open');
+    document.getElementById('ev-form-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function hideEventForm() {
+    document.getElementById('ev-form-wrap').classList.remove('open');
+    evEditId = null;
+  }
+
+  async function saveEvent() {
+    const title = document.getElementById('ev-title').value.trim();
+    const date  = document.getElementById('ev-date').value;
+    if (!title) { showToast('Le titre est requis', 'err'); return; }
+    if (!date)  { showToast('La date est requise', 'err'); return; }
+
+    const payload = {
+      title,
+      date,
+      time:             document.getElementById('ev-time').value || null,
+      location:         document.getElementById('ev-location').value.trim() || null,
+      price:            parseInt(document.getElementById('ev-price').value) || 0,
+      max_participants: parseInt(document.getElementById('ev-max').value) || 0,
+      image_url:        document.getElementById('ev-image').value.trim() || null,
+      description:      document.getElementById('ev-desc').value.trim() || null,
+      status:           document.getElementById('ev-status').value,
+    };
+
+    try {
+      const url    = evEditId ? `/api/admin/events/${evEditId}` : '/api/admin/events';
+      const method = evEditId ? 'PUT' : 'POST';
+      const r = await api(url, { method, body: JSON.stringify(payload) });
+      if (!r.ok) throw new Error('Erreur lors de l\'enregistrement');
+      showToast(evEditId ? 'Événement mis à jour ✓' : 'Événement créé ✓', 'ok');
+      hideEventForm();
+      loadAdminEvents();
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  async function deleteEvent(id) {
+    if (!confirm('Supprimer cet événement et toutes ses inscriptions ?')) return;
+    try {
+      const r = await api(`/api/admin/events/${id}`, { method: 'DELETE' });
+      if (!r.ok) throw new Error('Erreur lors de la suppression');
+      showToast('Événement supprimé', 'ok');
+      closeRegPanel();
+      loadAdminEvents();
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  async function showEventRegistrations(id, title) {
+    const panel = document.getElementById('reg-panel');
+    const body  = document.getElementById('reg-panel-body');
+    document.getElementById('reg-panel-title-text').textContent = `Inscriptions — ${title}`;
+    body.innerHTML = '<div style="color:var(--muted);padding:1rem">Chargement…</div>';
+    panel.classList.add('open');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const r    = await api(`/api/admin/events/${id}/registrations`);
+      const data = await r.json();
+      if (!data.registrations.length) {
+        body.innerHTML = '<div class="empty-state"><div class="ei">📭</div><div>Aucune inscription pour cet événement</div></div>';
+        return;
+      }
+      let html = `<table class="reg-table">
+        <thead><tr><th>#</th><th>Nom</th><th>Téléphone</th><th>Email</th><th>Inscrit le</th></tr></thead>
+        <tbody>`;
+      data.registrations.forEach((reg, i) => {
+        const d = reg.registered_at ? new Date(reg.registered_at).toLocaleString('fr') : '—';
+        html += `<tr>
+          <td style="color:var(--muted)">${i + 1}</td>
+          <td><strong>${reg.client_name}</strong></td>
+          <td class="mono" style="font-size:.8rem">${reg.client_phone}</td>
+          <td style="font-size:.82rem">${reg.client_email || '—'}</td>
+          <td style="font-size:.82rem;color:var(--muted)">${d}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      body.innerHTML = html;
+    } catch (e) { showToast(e.message, 'err'); }
+  }
+
+  function closeRegPanel() {
+    document.getElementById('reg-panel').classList.remove('open');
+  }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
   let toastTimer;

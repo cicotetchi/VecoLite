@@ -603,6 +603,106 @@
     #toast.err  { border-left: 3px solid #EF4444; }
     #toast.ok   { border-left: 3px solid var(--fern-l); }
 
+    /* ── ÉVÉNEMENTS ──────────────────────────────────────── */
+    #events { background: var(--stone); padding: 5rem 2.5rem; }
+    .events-inner { max-width: 1200px; margin: 0 auto; }
+    .events-empty { text-align:center; color: var(--muted); padding: 3rem 0; font-size: .95rem; }
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .event-card {
+      background: var(--white); border-radius: 20px;
+      overflow: hidden; box-shadow: var(--sh);
+      display: flex; flex-direction: column;
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+      position: relative;
+    }
+    .event-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(25,44,32,.12); }
+    .event-card-img {
+      height: 180px; background: var(--pine);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem; position: relative; overflow: hidden;
+    }
+    .event-card-img img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; }
+    .event-card-img .ev-emoji { position: relative; z-index: 1; }
+    .event-date-badge {
+      position: absolute; top: 1rem; left: 1rem; z-index: 2;
+      background: var(--clay); color: #fff;
+      font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+      padding: .35rem .75rem; border-radius: 100px;
+    }
+    .event-full-badge {
+      position: absolute; inset: 0; background: rgba(25,44,32,.65);
+      display: flex; align-items: center; justify-content: center; z-index: 3;
+      font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700;
+      color: #fff; letter-spacing: .04em;
+    }
+    .event-card-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; gap: .75rem; }
+    .event-card-title { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 700; color: var(--pine); line-height: 1.2; }
+    .event-card-desc { font-size: .875rem; color: var(--muted); line-height: 1.6; flex: 1; }
+    .event-meta { display: flex; flex-direction: column; gap: .4rem; }
+    .event-meta-row { display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ink); }
+    .event-meta-row svg { flex-shrink: 0; opacity: .5; }
+    .event-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: .75rem; border-top: 1px solid var(--stone); }
+    .event-price { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 900; color: var(--pine); }
+    .event-price small { font-family: 'DM Sans', sans-serif; font-size: .7rem; font-weight: 500; color: var(--muted); display: block; }
+    .event-price.free { color: var(--fern); }
+    .btn-register {
+      background: var(--clay); color: #fff;
+      border: none; border-radius: 100px; padding: .6rem 1.25rem;
+      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: all .2s var(--ease);
+    }
+    .btn-register:hover:not(:disabled) { background: var(--clay-l); transform: translateY(-1px); }
+    .btn-register:disabled { opacity: .45; cursor: not-allowed; }
+    .ev-spots { font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── MODAL INSCRIPTION ────────────────────────────────── */
+    #reg-modal {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(25,44,32,.65); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+      opacity: 0; pointer-events: none; transition: opacity .25s var(--ease);
+    }
+    #reg-modal.open { opacity: 1; pointer-events: all; }
+    .reg-card {
+      background: var(--white); border-radius: 24px;
+      padding: 2.5rem; width: 100%; max-width: 460px;
+      box-shadow: 0 32px 64px rgba(0,0,0,.25);
+      transform: translateY(24px) scale(.97);
+      transition: transform .3s var(--ease);
+    }
+    #reg-modal.open .reg-card { transform: translateY(0) scale(1); }
+    .reg-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; }
+    .reg-title { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 700; color: var(--pine); }
+    .reg-subtitle { font-size: .8rem; color: var(--muted); margin-top: .25rem; }
+    .reg-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--muted); line-height: 1; padding: 0; }
+    .reg-close:hover { color: var(--clay); }
+    .reg-field { margin-bottom: 1rem; }
+    .reg-field label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+    .reg-field input {
+      width: 100%; padding: .875rem 1rem;
+      border: 1.5px solid var(--stone); border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--ink);
+      background: var(--stone-d); outline: none; transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .reg-field input:focus { border-color: var(--fern); }
+    .btn-confirm {
+      width: 100%; padding: 1rem;
+      background: var(--clay); color: #fff;
+      border: none; border-radius: 100px; margin-top: .5rem;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all .25s var(--ease);
+    }
+    .btn-confirm:hover:not(:disabled) { background: var(--clay-l); }
+    .btn-confirm:disabled { opacity: .5; cursor: not-allowed; }
+    .reg-msg { font-size: .85rem; text-align: center; margin-top: .75rem; min-height: 1.2em; }
+    .reg-msg.ok  { color: var(--fern); }
+    .reg-msg.err { color: #EF4444; }
+
     /* ── REVEAL ──────────────────────────────────────────── */
     .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
     .reveal.in { opacity: 1; transform: translateY(0); }
@@ -1000,6 +1100,51 @@
 </section>
 
 <!-- FOOTER -->
+<!-- ÉVÉNEMENTS -->
+<section id="events">
+  <div class="events-inner">
+    <div class="section-eyebrow reveal">Agenda trail</div>
+    <h2 class="section-title reveal" style="margin-top:.5rem">
+      Nos <em>événements.</em>
+    </h2>
+    <div id="events-grid" class="events-grid">
+      <!-- injecté par JS -->
+    </div>
+    <div id="events-empty" class="events-empty" style="display:none">
+      Aucun événement à venir pour le moment. Revenez bientôt ! 🌿
+    </div>
+  </div>
+</section>
+
+<!-- MODAL INSCRIPTION -->
+<div id="reg-modal" role="dialog" aria-modal="true">
+  <div class="reg-card">
+    <div class="reg-header">
+      <div>
+        <div class="reg-title" id="reg-event-name">S'inscrire</div>
+        <div class="reg-subtitle" id="reg-event-date"></div>
+      </div>
+      <button class="reg-close" onclick="closeRegModal()" aria-label="Fermer">×</button>
+    </div>
+    <div class="reg-field">
+      <label>Nom complet *</label>
+      <input id="reg-name" type="text" placeholder="Votre nom" />
+    </div>
+    <div class="reg-field">
+      <label>Téléphone *</label>
+      <input id="reg-phone" type="tel" placeholder="+225 07 …" />
+    </div>
+    <div class="reg-field">
+      <label>Email <span style="font-weight:400;text-transform:none">(optionnel)</span></label>
+      <input id="reg-email" type="email" placeholder="vous@exemple.com" />
+    </div>
+    <button class="btn-confirm" id="reg-btn" onclick="submitRegistration()">
+      Confirmer l'inscription
+    </button>
+    <div class="reg-msg" id="reg-msg"></div>
+  </div>
+</div>
+
 <footer>
   <div class="footer-inner">
     <div>
@@ -1142,6 +1287,138 @@
     t.textContent = msg; t.className = `show ${type}`;
     toastTimer = setTimeout(() => { t.className = ''; }, 4000);
   }
+
+  // ── ÉVÉNEMENTS ────────────────────────────────────────────────────────────
+  let currentEventId = null;
+
+  function fmtDate(d) {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    return new Date(y, m - 1, day).toLocaleDateString('fr-FR',
+      { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function renderEvents(events) {
+    const grid  = document.getElementById('events-grid');
+    const empty = document.getElementById('events-empty');
+    if (!events.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    const EMOJIS = ['🚵', '🌲', '⛰️', '🏕️', '🌿', '🚴'];
+    grid.innerHTML = events.map((ev, i) => {
+      const full = ev.max_participants > 0 && ev.participants_count >= ev.max_participants;
+      const spotsLeft = ev.max_participants > 0
+        ? `${ev.max_participants - ev.participants_count} place(s) restante(s)`
+        : `${ev.participants_count} inscrit(s)`;
+      const priceHtml = ev.price === 0
+        ? `<div class="event-price free">Gratuit<small>&nbsp;</small></div>`
+        : `<div class="event-price">${ev.price.toLocaleString('fr')} <span style="font-size:.75rem;font-weight:500">FCFA</span><small>par personne</small></div>`;
+      return `
+        <div class="event-card reveal">
+          <div class="event-card-img">
+            ${ev.image_url ? `<img src="${ev.image_url}" alt="${ev.title}" />` : ''}
+            <span class="ev-emoji">${EMOJIS[i % EMOJIS.length]}</span>
+            <div class="event-date-badge">${fmtDate(ev.date)}${ev.time ? ' · ' + ev.time : ''}</div>
+            ${full ? '<div class="event-full-badge">Complet</div>' : ''}
+          </div>
+          <div class="event-card-body">
+            <div class="event-card-title">${ev.title}</div>
+            ${ev.description ? `<div class="event-card-desc">${ev.description}</div>` : ''}
+            <div class="event-meta">
+              ${ev.location ? `<div class="event-meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                ${ev.location}</div>` : ''}
+              <div class="event-meta-row">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                ${spotsLeft}
+              </div>
+            </div>
+            <div class="event-card-footer">
+              ${priceHtml}
+              <button class="btn-register" ${full ? 'disabled' : ''}
+                onclick="openRegModal(${ev.id}, '${ev.title.replace(/'/g,"\\'")}', '${ev.date}', '${ev.time || ''}')">
+                ${full ? 'Complet' : "S'inscrire"}
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    // Déclenche les animations reveal
+    requestAnimationFrame(() => {
+      grid.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+    });
+  }
+
+  async function loadEvents() {
+    try {
+      const res = await fetch(`${API}/api/events`);
+      if (!res.ok) return;
+      renderEvents(await res.json());
+    } catch (e) { /* silencieux si hors ligne */ }
+  }
+
+  function openRegModal(id, title, date, time) {
+    currentEventId = id;
+    document.getElementById('reg-event-name').textContent = title;
+    document.getElementById('reg-event-date').textContent =
+      fmtDate(date) + (time ? ' · ' + time : '');
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-phone').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-msg').textContent = '';
+    document.getElementById('reg-msg').className = 'reg-msg';
+    document.getElementById('reg-btn').disabled = false;
+    document.getElementById('reg-modal').classList.add('open');
+  }
+
+  function closeRegModal() {
+    document.getElementById('reg-modal').classList.remove('open');
+    currentEventId = null;
+  }
+
+  async function submitRegistration() {
+    const name  = document.getElementById('reg-name').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const msgEl = document.getElementById('reg-msg');
+    const btn   = document.getElementById('reg-btn');
+
+    if (!name || !phone) {
+      msgEl.textContent = 'Nom et téléphone obligatoires.';
+      msgEl.className = 'reg-msg err'; return;
+    }
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    try {
+      const res = await fetch(`${API}/api/events/${currentEventId}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_name: name, client_phone: phone, client_email: email || null }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msgEl.textContent = '✅ ' + data.message;
+        msgEl.className = 'reg-msg ok';
+        btn.textContent = 'Inscrit !';
+        loadEvents(); // Refresh le compteur
+        setTimeout(closeRegModal, 2500);
+      } else {
+        msgEl.textContent = data.detail || 'Erreur lors de l\'inscription.';
+        msgEl.className = 'reg-msg err';
+        btn.disabled = false; btn.textContent = "Confirmer l'inscription";
+      }
+    } catch {
+      msgEl.textContent = 'Erreur réseau.';
+      msgEl.className = 'reg-msg err';
+      btn.disabled = false; btn.textContent = "Confirmer l'inscription";
+    }
+  }
+
+  // Fermer modal en cliquant le fond
+  document.getElementById('reg-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeRegModal();
+  });
+
+  // Charger les événements au démarrage
+  loadEvents();
 </script>
 </body>
 </html>
