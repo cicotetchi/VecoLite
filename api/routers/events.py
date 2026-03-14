@@ -1,9 +1,10 @@
 from typing import Optional
 from datetime import datetime
+import os, uuid as _uuid
+import urllib.request, urllib.error
 
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File
 from sqlalchemy.orm import Session
-import os
 
 from .. import models, schemas
 from ..database import get_db
@@ -142,6 +143,46 @@ def admin_delete_event(
     db.delete(event)
     db.commit()
     return {"message": "Événement supprimé"}
+
+
+@router.post("/api/admin/events/upload")
+async def upload_event_media(
+    file: UploadFile = File(...),
+    _=Depends(_auth),
+):
+    """Upload une image ou vidéo vers Supabase Storage et retourne l'URL publique."""
+    supabase_url = os.environ.get("SUPABASE_URL", "https://xlpypozfpuemuanhnoxh.supabase.co")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    if not supabase_key:
+        raise HTTPException(500, "SUPABASE_SERVICE_KEY non configuré côté serveur")
+
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:  # 50 Mo max
+        raise HTTPException(400, "Fichier trop volumineux (max 50 Mo)")
+
+    ext = ""
+    if file.filename:
+        ext = os.path.splitext(file.filename)[1].lower()
+    filename = f"events/{_uuid.uuid4().hex}{ext}"
+    content_type = file.content_type or "application/octet-stream"
+
+    bucket = "assets"
+    upload_url = f"{supabase_url}/storage/v1/object/{bucket}/{filename}"
+    headers = {
+        "Authorization": f"Bearer {supabase_key}",
+        "apikey": supabase_key,
+        "Content-Type": content_type,
+        "x-upsert": "true",
+    }
+    req = urllib.request.Request(upload_url, data=content, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(req) as r:
+            r.read()
+    except urllib.error.HTTPError as e:
+        raise HTTPException(500, f"Erreur Supabase Storage : {e.read().decode()}")
+
+    public_url = f"{supabase_url}/storage/v1/object/public/{bucket}/{filename}"
+    return {"url": public_url, "filename": filename}
 
 
 @router.get("/api/admin/events/{event_id}/registrations")

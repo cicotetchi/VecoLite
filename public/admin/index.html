@@ -361,6 +361,26 @@
     .ev-save-btn:hover { background:#3da855; }
     .ev-cancel-btn { background:none; color:var(--muted); border:1px solid var(--border); border-radius:100px; padding:.65rem 1.5rem; font-family:'DM Sans',sans-serif; font-size:.9rem; cursor:pointer; transition:all .25s; }
     .ev-cancel-btn:hover { color:var(--text); }
+
+    /* Media upload */
+    .ev-media-box { display:flex; flex-direction:column; gap:.75rem; }
+    .ev-media-preview { min-height:0; }
+    .ev-media-preview img,
+    .ev-media-preview video { max-width:100%; max-height:220px; border-radius:var(--r-sm); object-fit:cover; display:block; border:1px solid var(--border); }
+    .ev-media-controls { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+    .ev-upload-label { position:relative; cursor:pointer; display:inline-flex; align-items:center; }
+    .ev-upload-label input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; }
+    .ev-upload-label span {
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.55rem 1.15rem; border-radius:100px;
+      background:var(--surface2); border:1px solid var(--border);
+      color:var(--text); font-size:.85rem; font-weight:500;
+      white-space:nowrap; transition:all .2s;
+    }
+    .ev-upload-label:hover span { border-color:var(--accent); color:var(--accent); }
+    .ev-media-or { color:var(--muted); font-size:.85rem; white-space:nowrap; flex-shrink:0; }
+    .ev-upload-status { font-size:.82rem; padding:.35rem 0; }
+
     .bike-item {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--r); padding: 1.5rem;
@@ -659,8 +679,19 @@
               <input class="ev-inp" type="number" id="ev-max" value="0" min="0" />
             </div>
             <div class="ev-form-full">
-              <label class="ev-inp-label">URL de l'image (optionnel)</label>
-              <input class="ev-inp" type="url" id="ev-image" placeholder="https://…" />
+              <label class="ev-inp-label">Média — image ou vidéo</label>
+              <div class="ev-media-box">
+                <div class="ev-media-preview" id="ev-media-preview"></div>
+                <div class="ev-media-controls">
+                  <label class="ev-upload-label">
+                    <input type="file" id="ev-file" accept="image/*,video/*" onchange="uploadEventMedia(this)" />
+                    <span>📎 Choisir un fichier</span>
+                  </label>
+                  <span class="ev-media-or">ou</span>
+                  <input class="ev-inp" type="url" id="ev-image" placeholder="https://… (URL directe)" oninput="previewMedia(this.value)" style="flex:1;min-width:180px" />
+                </div>
+                <div class="ev-upload-status" id="ev-upload-status" style="display:none"></div>
+              </div>
             </div>
             <div class="ev-form-full">
               <label class="ev-inp-label">Description</label>
@@ -1137,6 +1168,8 @@
     document.getElementById('ev-image').value    = ev ? (ev.image_url || '') : '';
     document.getElementById('ev-desc').value     = ev ? (ev.description || '') : '';
     document.getElementById('ev-status').value   = ev ? ev.status : 'active';
+    document.getElementById('ev-upload-status').style.display = 'none';
+    previewMedia(ev ? (ev.image_url || '') : '');
     document.getElementById('ev-form-wrap').classList.add('open');
     document.getElementById('ev-form-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -1220,6 +1253,51 @@
 
   function closeRegPanel() {
     document.getElementById('reg-panel').classList.remove('open');
+  }
+
+  // ── Upload média événement ─────────────────────────────────────────────────
+  async function uploadEventMedia(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('ev-upload-status');
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '<span style="color:var(--muted)">⏳ Upload en cours…</span>';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const r = await fetch(`${API}/api/admin/events/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.detail || 'Erreur upload');
+      }
+      const data = await r.json();
+      document.getElementById('ev-image').value = data.url;
+      previewMedia(data.url);
+      statusEl.innerHTML = '<span style="color:var(--accent)">✓ Fichier uploadé</span>';
+      showToast('Média uploadé ✓', 'ok');
+    } catch (e) {
+      statusEl.innerHTML = `<span style="color:var(--danger)">❌ ${e.message}</span>`;
+      showToast('Erreur upload : ' + e.message, 'err');
+    } finally {
+      input.value = '';
+    }
+  }
+
+  function previewMedia(url) {
+    const el = document.getElementById('ev-media-preview');
+    if (!url) { el.innerHTML = ''; return; }
+    if (/\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(url)) {
+      el.innerHTML = `<video src="${url}" controls style="max-width:100%;max-height:220px;border-radius:var(--r-sm)"></video>`;
+    } else {
+      el.innerHTML = `<img src="${url}" alt="aperçu"
+        onerror="this.parentElement.innerHTML='<span style=\'color:var(--muted);font-size:.82rem\'>Image introuvable</span>'" />`;
+    }
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────

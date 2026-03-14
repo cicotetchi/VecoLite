@@ -1315,8 +1315,12 @@
       return `
         <div class="event-card reveal">
           <div class="event-card-img">
-            ${ev.image_url ? `<img src="${ev.image_url}" alt="${ev.title}" />` : ''}
-            <span class="ev-emoji">${EMOJIS[i % EMOJIS.length]}</span>
+            ${ev.image_url
+              ? (/\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(ev.image_url)
+                  ? `<video src="${ev.image_url}" autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"></video>`
+                  : `<img src="${ev.image_url}" alt="${ev.title}" />`)
+              : ''}
+            <span class="ev-emoji" style="${ev.image_url ? 'opacity:.0;pointer-events:none' : ''}">${EMOJIS[i % EMOJIS.length]}</span>
             <div class="event-date-badge">${fmtDate(ev.date)}${ev.time ? ' · ' + ev.time : ''}</div>
             ${full ? '<div class="event-full-badge">Complet</div>' : ''}
           </div>
