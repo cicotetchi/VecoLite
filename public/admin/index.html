@@ -1146,6 +1146,7 @@
           <div class="ev-actions">
             <button class="ev-btn" onclick='showEventForm(${JSON.stringify(ev)})'>✏️ Modifier</button>
             <button class="ev-btn reg" onclick="showEventRegistrations(${ev.id}, '${ev.title.replace(/'/g,"\\'")}')">👥 ${ev.participants_count}</button>
+            <button class="ev-btn" onclick="copyEventShareLink(${ev.id})" title="Copier le lien de partage direct">🔗 Lien</button>
             <button class="ev-btn del" onclick="deleteEvent(${ev.id})">🗑️</button>
           </div>
         </td>
@@ -1253,6 +1254,25 @@
 
   function closeRegPanel() {
     document.getElementById('reg-panel').classList.remove('open');
+  }
+
+  // ── Lien de partage événement ─────────────────────────────────────────────
+  function copyEventShareLink(id) {
+    // Le lien pointe vers le site public avec le paramètre ?event=<id>
+    const base = window.location.hostname === 'localhost'
+      ? 'http://localhost:8000'
+      : window.location.origin;
+    const url = `${base}/?event=${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('🔗 Lien copié dans le presse-papier !', 'ok');
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('🔗 Lien copié !', 'ok');
+    });
   }
 
   // ── Upload média événement ─────────────────────────────────────────────────
