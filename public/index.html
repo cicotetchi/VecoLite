@@ -751,6 +751,49 @@
     }
     .ehc-register:hover { background: var(--clay-l); transform: translateY(-1px); }
 
+    /* ── EVENT MOBILE BANNER ────────────────────────────────── */
+    #hero-event-mobile {
+      background: var(--pine); border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .ehm-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: .875rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .ehm-thumb {
+      width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0;
+      background: var(--pine-l); overflow: hidden; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .ehm-thumb img, .ehm-thumb video {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: block;
+    }
+    .ehm-body { flex: 1; min-width: 0; }
+    .ehm-label {
+      font-size: .6rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--amber); margin-bottom: .15rem;
+    }
+    .ehm-title {
+      font-family: 'Fraunces', serif; font-size: .95rem; font-weight: 700;
+      color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ehm-date { font-size: .68rem; color: rgba(255,255,255,.4); margin-top: .1rem; }
+    .ehm-right { flex-shrink: 0; text-align: right; }
+    .ehm-price {
+      font-family: 'Fraunces', serif; font-size: .95rem; font-weight: 700;
+      color: var(--amber); margin-bottom: .3rem;
+    }
+    .ehm-price.free { color: var(--fern-l); font-size: .82rem; }
+    .ehm-btn {
+      background: var(--clay); color: #fff;
+      border: none; border-radius: 100px; padding: .45rem .9rem;
+      font-family: 'DM Sans', sans-serif; font-size: .78rem; font-weight: 600;
+      cursor: pointer; transition: all .2s; white-space: nowrap;
+    }
+    .ehm-btn:hover { background: var(--clay-l); }
+
     /* ── SHARE BUTTON ────────────────────────────────────── */
     .btn-share {
       background: none; border: 1px solid var(--stone-d);
@@ -768,10 +811,14 @@
     .reveal-l.in { opacity: 1; transform: translateX(0); }
 
     /* ── RESPONSIVE ──────────────────────────────────────── */
+    /* Desktop : bandeau mobile caché */
+    #hero-event-mobile { display: none; }
+
     @media (max-width: 960px) {
       .hero-inner { grid-template-columns: 1fr; }
-      .hero-right { display: none; }
+      .hero-right { display: none; } /* cartes desktop cachées */
       .trail-card { display: none; }
+      /* Le bandeau mobile s'affiche via JS (renderHeroEvent le rend visible) */
       .bike-grid     { grid-template-columns: 1fr; }
       .duration-grid { grid-template-columns: 1fr; }
       .form-layout   { grid-template-columns: 1fr; }
@@ -856,66 +903,84 @@
       </div>
     </div>
 
-    <!-- Right column : trail card + next event card -->
+    <!-- Right column : event card (top) + trail card (bottom) -->
     <div class="hero-right">
-    <!-- Trail info card -->
-    <div class="trail-card">
-      <div class="tc-header">
-        <span class="tc-tag">En Balade</span>
-        <span class="tc-dot"></span>
-      </div>
-      <div class="tc-title">Sentier du Pic Vert</div>
-      <div class="tc-sub">Parc naturel · Boucle forêt</div>
-      <div class="tc-metrics">
-        <div class="tc-metric">
-          <div class="tc-metric-val">18</div>
-          <div class="tc-metric-lbl">Km</div>
-        </div>
-        <div class="tc-metric">
-          <div class="tc-metric-val">+320</div>
-          <div class="tc-metric-lbl">Dénivelé m</div>
-        </div>
-        <div class="tc-metric">
-          <div class="tc-metric-val">3h</div>
-          <div class="tc-metric-lbl">Durée</div>
-        </div>
-        <div class="tc-metric">
-          <div class="tc-metric-val" style="color:var(--amber)">★ 4.8</div>
-          <div class="tc-metric-lbl">Note</div>
-        </div>
-      </div>
-      <div class="tc-terrain">
-        <div class="tc-terrain-lbl">Difficulté du terrain</div>
-        <div class="tc-bars">
-          <div class="tc-bar on"></div>
-          <div class="tc-bar on"></div>
-          <div class="tc-bar on peak"></div>
-          <div class="tc-bar"></div>
-          <div class="tc-bar"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Next event teaser card (injected by JS) -->
-    <div class="event-hero-card" id="hero-event-card" style="display:none">
-      <div class="ehc-media" id="ehc-media">
-        <span class="ehc-label">🗓️ Prochain événement</span>
-        <span>🚵</span>
-      </div>
-      <div class="ehc-body">
-        <div class="ehc-title" id="ehc-title">—</div>
-        <div class="ehc-date"  id="ehc-date">—</div>
-        <div class="ehc-footer">
-          <div class="ehc-price" id="ehc-price">—</div>
-          <button class="ehc-register" id="ehc-btn">S'inscrire →</button>
+      <!-- 1. Prochain événement (injecté par JS) — au-dessus -->
+      <div class="event-hero-card" id="hero-event-card" style="display:none">
+        <div class="ehc-media" id="ehc-media">
+          <span class="ehc-label">🗓️ Prochain événement</span>
+          <span>🚵</span>
+        </div>
+        <div class="ehc-body">
+          <div class="ehc-title" id="ehc-title">—</div>
+          <div class="ehc-date"  id="ehc-date">—</div>
+          <div class="ehc-footer">
+            <div class="ehc-price" id="ehc-price">—</div>
+            <button class="ehc-register" id="ehc-btn">S'inscrire →</button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- 2. Trail card statique — en dessous -->
+      <div class="trail-card">
+        <div class="tc-header">
+          <span class="tc-tag">En Balade</span>
+          <span class="tc-dot"></span>
+        </div>
+        <div class="tc-title">Sentier du Pic Vert</div>
+        <div class="tc-sub">Parc naturel · Boucle forêt</div>
+        <div class="tc-metrics">
+          <div class="tc-metric">
+            <div class="tc-metric-val">18</div>
+            <div class="tc-metric-lbl">Km</div>
+          </div>
+          <div class="tc-metric">
+            <div class="tc-metric-val">+320</div>
+            <div class="tc-metric-lbl">Dénivelé m</div>
+          </div>
+          <div class="tc-metric">
+            <div class="tc-metric-val">3h</div>
+            <div class="tc-metric-lbl">Durée</div>
+          </div>
+          <div class="tc-metric">
+            <div class="tc-metric-val" style="color:var(--amber)">★ 4.8</div>
+            <div class="tc-metric-lbl">Note</div>
+          </div>
+        </div>
+        <div class="tc-terrain">
+          <div class="tc-terrain-lbl">Difficulté du terrain</div>
+          <div class="tc-bars">
+            <div class="tc-bar on"></div>
+            <div class="tc-bar on"></div>
+            <div class="tc-bar on peak"></div>
+            <div class="tc-bar"></div>
+            <div class="tc-bar"></div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /.hero-right -->
   </div>
 
   <div class="scroll-hint">Découvrir</div>
 </section>
+
+<!-- EVENT MOBILE BANNER — visible uniquement sur mobile (<960px) -->
+<div id="hero-event-mobile" style="display:none">
+  <div class="ehm-inner">
+    <div class="ehm-thumb" id="ehm-thumb"><span>🗓️</span></div>
+    <div class="ehm-body">
+      <div class="ehm-label">Prochain événement</div>
+      <div class="ehm-title" id="ehm-title">—</div>
+      <div class="ehm-date"  id="ehm-date">—</div>
+    </div>
+    <div class="ehm-right">
+      <div class="ehm-price" id="ehm-price">—</div>
+      <button class="ehm-btn" id="ehm-btn">S'inscrire</button>
+    </div>
+  </div>
+</div>
 
 <!-- Terrain strip -->
 <div class="terrain-strip">
@@ -1459,20 +1524,27 @@
     } catch (e) { /* silencieux si hors ligne */ }
   }
 
-  // ── Carte héro événement ──────────────────────────────────────────────────
+  // ── Carte héro événement (desktop + mobile) ──────────────────────────────
   function renderHeroEvent(ev) {
+    if (!ev) return;
+
+    const full = ev.max_participants > 0 && ev.participants_count >= ev.max_participants;
+    const isVid = ev.image_url && /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(ev.image_url);
+    const dateStr = fmtDate(ev.date) + (ev.time ? ' · ' + ev.time : '') + (ev.location ? ' · ' + ev.location : '');
+    const priceStr = ev.price === 0 ? 'Gratuit' : ev.price.toLocaleString('fr') + ' F';
+    const priceCls = ev.price === 0 ? ' free' : '';
+
+    const onRegister = () => {
+      document.getElementById('events').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => openRegModal(ev.id, ev.title, ev.date, ev.time || ''), 400);
+    };
+
+    // ── Desktop card ─────────────────────────────────────────────────────
     const card  = document.getElementById('hero-event-card');
     const media = document.getElementById('ehc-media');
-    const title = document.getElementById('ehc-title');
-    const date  = document.getElementById('ehc-date');
-    const price = document.getElementById('ehc-price');
-    const btn   = document.getElementById('ehc-btn');
-    if (!ev) { card.style.display = 'none'; return; }
 
-    // Média
     let mediaHtml = '<span class="ehc-label">🗓️ Prochain événement</span><span>🚵</span>';
     if (ev.image_url) {
-      const isVid = /\.(mp4|webm|mov|avi|mkv)(\?|$)/i.test(ev.image_url);
       mediaHtml = `<span class="ehc-label">🗓️ Prochain événement</span>` +
         (isVid
           ? `<video src="${ev.image_url}" autoplay muted loop playsinline></video>`
@@ -1480,22 +1552,44 @@
     }
     media.innerHTML = mediaHtml;
 
-    title.textContent = ev.title;
-    date.textContent  = fmtDate(ev.date) + (ev.time ? ' · ' + ev.time : '') + (ev.location ? ' · ' + ev.location : '');
-    if (ev.price === 0) {
-      price.textContent = 'Gratuit'; price.className = 'ehc-price free';
-    } else {
-      price.textContent = ev.price.toLocaleString('fr') + ' F'; price.className = 'ehc-price';
-    }
-
-    const full = ev.max_participants > 0 && ev.participants_count >= ev.max_participants;
-    btn.disabled = full;
-    btn.textContent = full ? 'Complet' : "S'inscrire →";
-    btn.onclick = () => {
-      document.getElementById('events').scrollIntoView({ behavior: 'smooth' });
-      setTimeout(() => openRegModal(ev.id, ev.title, ev.date, ev.time || ''), 400);
-    };
+    document.getElementById('ehc-title').textContent = ev.title;
+    document.getElementById('ehc-date').textContent  = dateStr;
+    const priceEl = document.getElementById('ehc-price');
+    priceEl.textContent = priceStr; priceEl.className = 'ehc-price' + priceCls;
+    const btn = document.getElementById('ehc-btn');
+    btn.disabled = full; btn.textContent = full ? 'Complet' : "S'inscrire →";
+    btn.onclick = onRegister;
     card.style.display = 'block';
+
+    // ── Mobile banner ────────────────────────────────────────────────────
+    const mobileWrap = document.getElementById('hero-event-mobile');
+    const mThumb = document.getElementById('ehm-thumb');
+
+    let thumbHtml = '<span>🗓️</span>';
+    if (ev.image_url) {
+      thumbHtml = isVid
+        ? `<video src="${ev.image_url}" autoplay muted loop playsinline></video>`
+        : `<img src="${ev.image_url}" alt="${ev.title}" />`;
+    }
+    mThumb.innerHTML = thumbHtml;
+
+    document.getElementById('ehm-title').textContent = ev.title;
+    document.getElementById('ehm-date').textContent  = fmtDate(ev.date) + (ev.time ? ' · ' + ev.time : '');
+    const mPriceEl = document.getElementById('ehm-price');
+    mPriceEl.textContent = priceStr; mPriceEl.className = 'ehm-price' + priceCls;
+    const mBtn = document.getElementById('ehm-btn');
+    mBtn.disabled = full; mBtn.textContent = full ? 'Complet' : "S'inscrire";
+    mBtn.onclick = onRegister;
+
+    // Afficher le bandeau mobile uniquement sur petits écrans
+    mobileWrap.style.display = window.innerWidth <= 960 ? 'block' : 'none';
+
+    // Écouter le redimensionnement pour basculer la visibilité
+    window._ehcResizeHandler && window.removeEventListener('resize', window._ehcResizeHandler);
+    window._ehcResizeHandler = () => {
+      mobileWrap.style.display = window.innerWidth <= 960 ? 'block' : 'none';
+    };
+    window.addEventListener('resize', window._ehcResizeHandler);
   }
 
   // ── Copier lien de partage ────────────────────────────────────────────────
