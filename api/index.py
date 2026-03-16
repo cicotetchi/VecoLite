@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid as _uuid
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -9,17 +10,43 @@ from fastapi.staticfiles import StaticFiles
 try:
     from .database import engine, Base, SessionLocal
     from .routers import bookings, admin, scan, events, users
-    from .models import User
+    from .models import User, Event
     from .auth import hash_password
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from database import engine, Base, SessionLocal   # noqa: E402
     from routers import bookings, admin, scan, events, users  # noqa: E402
-    from models import User                           # noqa: E402
+    from models import User, Event                    # noqa: E402
     from auth import hash_password                    # noqa: E402
 
 # ── Create tables ─────────────────────────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
+
+
+# ── Migration : ajoute share_token aux événements existants ───────────────────
+def _migrate_share_tokens():
+    """Ajoute la colonne share_token si absente, puis backfille les événements."""
+    from sqlalchemy import text
+    # 1. Ajouter la colonne si elle n'existe pas encore (idempotent)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE events ADD COLUMN share_token VARCHAR"))
+            conn.commit()
+        except Exception:
+            pass  # déjà présente
+    # 2. Backfiller les événements sans token
+    db = SessionLocal()
+    try:
+        missing = db.query(Event).filter(Event.share_token.is_(None)).all()
+        for ev in missing:
+            ev.share_token = str(_uuid.uuid4())
+        if missing:
+            db.commit()
+    finally:
+        db.close()
+
+
+_migrate_share_tokens()
 
 
 # ── Ensure a default admin account exists ─────────────────────────────────────

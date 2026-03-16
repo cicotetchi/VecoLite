@@ -1265,7 +1265,7 @@
           <div class="ev-actions">
             <button class="ev-btn" onclick='showEventForm(${JSON.stringify(ev)})'>✏️ Modifier</button>
             <button class="ev-btn reg" onclick="showEventRegistrations(${ev.id}, '${ev.title.replace(/'/g,"\\'")}')">👥 ${ev.participants_count}</button>
-            <button class="ev-btn" onclick="copyEventShareLink(${ev.id})" title="Copier le lien de partage direct">🔗 Lien</button>
+            <button class="ev-btn" onclick="copyEventShareLink('${ev.share_token || ev.id}')" title="Copier le lien de partage direct">🔗 Lien</button>
             ${userRole === 'admin' ? `<button class="ev-btn del" onclick="deleteEvent(${ev.id})">🗑️</button>` : ''}
           </div>
         </td>
@@ -1376,12 +1376,12 @@
   }
 
   // ── Lien de partage événement ─────────────────────────────────────────────
-  function copyEventShareLink(id) {
-    // Le lien pointe vers le site public avec le paramètre ?event=<id>
+  function copyEventShareLink(token) {
+    // Le lien pointe vers le site public avec le paramètre ?event=<share_token>
     const base = window.location.hostname === 'localhost'
       ? 'http://localhost:8000'
       : window.location.origin;
-    const url = `${base}/?event=${id}`;
+    const url = `${base}/?event=${token}`;
     navigator.clipboard.writeText(url).then(() => {
       showToast('🔗 Lien copié dans le presse-papier !', 'ok');
     }).catch(() => {

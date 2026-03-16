@@ -15,18 +15,19 @@ router = APIRouter(tags=["events"])
 
 def _event_to_dict(event: models.Event) -> dict:
     return {
-        "id": event.id,
-        "title": event.title,
-        "description": event.description,
-        "date": event.date,
-        "time": event.time,
-        "location": event.location,
-        "image_url": event.image_url,
+        "id":           event.id,
+        "share_token":  event.share_token,
+        "title":        event.title,
+        "description":  event.description,
+        "date":         event.date,
+        "time":         event.time,
+        "location":     event.location,
+        "image_url":    event.image_url,
         "max_participants": event.max_participants,
-        "price": event.price,
-        "status": event.status,
+        "price":        event.price,
+        "status":       event.status,
         "participants_count": len(event.registrations),
-        "created_at": event.created_at.isoformat() if event.created_at else None,
+        "created_at":   event.created_at.isoformat() if event.created_at else None,
     }
 
 
@@ -42,6 +43,19 @@ def list_public_events(db: Session = Depends(get_db)):
         .all()
     )
     return [_event_to_dict(e) for e in events]
+
+
+@router.get("/api/events/token/{token}")
+def get_event_by_token(token: str, db: Session = Depends(get_db)):
+    """Retourne un événement actif par son share_token (lien de partage public)."""
+    event = (
+        db.query(models.Event)
+        .filter(models.Event.share_token == token, models.Event.status == "active")
+        .first()
+    )
+    if not event:
+        raise HTTPException(404, "Événement introuvable ou inactif")
+    return _event_to_dict(event)
 
 
 @router.post("/api/events/{event_id}/register")

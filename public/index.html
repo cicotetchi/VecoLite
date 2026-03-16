@@ -1483,7 +1483,7 @@
             <div class="event-card-footer">
               ${priceHtml}
               <div style="display:flex;align-items:center;gap:.5rem">
-                <button class="btn-share" onclick="copyEventLink(${ev.id})" title="Copier le lien de partage">
+                <button class="btn-share" onclick="copyEventLink('${ev.share_token || ev.id}')" title="Copier le lien de partage">
                   🔗
                 </button>
                 <button class="btn-register" ${full ? 'disabled' : ''}
@@ -1509,11 +1509,24 @@
       _eventsCache = events;
       renderEvents(events);
       if (events.length) renderHeroEvent(events[0]);
-      // Lien de partage direct : ?event=<id>
+      // Lien de partage direct : ?event=<share_token> (UUID) ou <id> (compat rétrograde)
       const urlParams = new URLSearchParams(window.location.search);
-      const targetId = parseInt(urlParams.get('event'));
-      if (targetId) {
-        const ev = events.find(e => e.id === targetId);
+      const eventParam = urlParams.get('event');
+      if (eventParam) {
+        // 1. Chercher par share_token dans le cache (chemin normal)
+        let ev = events.find(e => e.share_token === eventParam);
+        // 2. Compat rétrograde : anciens liens ?event=<entier>
+        if (!ev) {
+          const numId = parseInt(eventParam);
+          if (!isNaN(numId)) ev = events.find(e => e.id === numId);
+        }
+        // 3. Fallback API si l'événement n'est pas dans le cache (ex: token invalide ignoré)
+        if (!ev && /^[0-9a-f-]{36}$/i.test(eventParam)) {
+          try {
+            const r = await fetch(`${API}/api/events/token/${eventParam}`);
+            if (r.ok) ev = await r.json();
+          } catch {}
+        }
         if (ev) {
           setTimeout(() => {
             document.getElementById('events').scrollIntoView({ behavior: 'smooth' });
@@ -1593,8 +1606,8 @@
   }
 
   // ── Copier lien de partage ────────────────────────────────────────────────
-  function copyEventLink(id) {
-    const url = `${window.location.origin}${window.location.pathname}?event=${id}`;
+  function copyEventLink(token) {
+    const url = `${window.location.origin}${window.location.pathname}?event=${token}`;
     navigator.clipboard.writeText(url).then(() => {
       showToast('🔗 Lien copié !', 'ok');
     }).catch(() => {

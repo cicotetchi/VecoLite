@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -61,6 +62,9 @@ class Event(Base):
     __tablename__ = "events"
 
     id          = Column(Integer, primary_key=True, index=True)
+    # Token aléatoire pour les liens de partage (évite l'énumération par ID entier)
+    share_token = Column(String, unique=True, nullable=True, index=True,
+                         default=lambda: str(uuid.uuid4()))
     title       = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     date        = Column(String, nullable=False)   # YYYY-MM-DD
