@@ -526,8 +526,8 @@
   <div class="login-card">
     <div class="login-logo"><img src="https://xlpypozfpuemuanhnoxh.supabase.co/storage/v1/object/public/assets/logo.jpeg" onerror="this.src='/logo.jpeg'" alt="VecoLite" /></div>
     <div class="login-sub">Espace administrateur</div>
-    <input class="login-inp" type="text" id="loginUser" placeholder="Nom d'utilisateur" value="admin" />
-    <input class="login-inp" type="password" id="loginPass" placeholder="Mot de passe" value="vecolite2024" />
+    <input class="login-inp" type="text" id="loginUser" placeholder="Nom d'utilisateur" autocomplete="username" />
+    <input class="login-inp" type="password" id="loginPass" placeholder="Mot de passe" autocomplete="current-password" />
     <button class="login-btn" onclick="doLogin()">Se connecter</button>
     <div class="login-err" id="loginErr"></div>
   </div>

@@ -24,13 +24,20 @@ Base.metadata.create_all(bind=engine)
 
 # ── Ensure a default admin account exists ─────────────────────────────────────
 def _bootstrap_admin():
-    """Creates the default admin account if no admin user exists yet."""
+    """Creates the default admin account if no admin user exists yet.
+    Requires ADMIN_USERNAME and ADMIN_PASSWORD env vars — skipped if absent.
+    """
+    admin_username = os.environ.get("ADMIN_USERNAME")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+    if not admin_username or not admin_password:
+        return  # variables d'environnement non définies → on ne crée rien
+
     db = SessionLocal()
     try:
         if not db.query(User).filter(User.role == "admin").first():
             db.add(User(
-                username=os.environ.get("ADMIN_USERNAME", "admin"),
-                password_hash=hash_password(os.environ.get("ADMIN_PASSWORD", "vecolite2024")),
+                username=admin_username,
+                password_hash=hash_password(admin_password),
                 role="admin",
             ))
             db.commit()
