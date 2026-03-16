@@ -72,6 +72,33 @@ class AdminLogin(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+    role: str = "admin"
+    username: str = "admin"
+
+
+# ── Users ─────────────────────────────────────────────────────────────────────
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str = "operator"    # admin | operator
+
+
+class UserUpdate(BaseModel):
+    password:  Optional[str]  = None
+    role:      Optional[str]  = None
+    is_active: Optional[bool] = None
+
+
+class UserResponse(BaseModel):
+    id:        int
+    username:  str
+    role:      str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # ── Events ────────────────────────────────────────────────────────────────────

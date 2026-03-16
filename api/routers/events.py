@@ -8,16 +8,9 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..auth import require_auth, require_admin
 
 router = APIRouter(tags=["events"])
-
-ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "vl-admin-secret-2024")
-
-
-def _auth(authorization: Optional[str] = Header(None)):
-    if not authorization or authorization != f"Bearer {ADMIN_TOKEN}":
-        raise HTTPException(401, "Non autorisé")
-    return True
 
 
 def _event_to_dict(event: models.Event) -> dict:
@@ -86,7 +79,7 @@ def register_for_event(
 # ── Admin ─────────────────────────────────────────────────────────────────────
 
 @router.get("/api/admin/events")
-def admin_list_events(db: Session = Depends(get_db), _=Depends(_auth)):
+def admin_list_events(db: Session = Depends(get_db), _=Depends(require_auth)):
     events = db.query(models.Event).order_by(models.Event.date.asc()).all()
     return [_event_to_dict(e) for e in events]
 
@@ -95,7 +88,7 @@ def admin_list_events(db: Session = Depends(get_db), _=Depends(_auth)):
 def admin_create_event(
     data: schemas.EventCreate,
     db: Session = Depends(get_db),
-    _=Depends(_auth),
+    _=Depends(require_auth),
 ):
     event = models.Event(
         title=data.title,
@@ -119,7 +112,7 @@ def admin_update_event(
     event_id: int,
     data: schemas.EventUpdate,
     db: Session = Depends(get_db),
-    _=Depends(_auth),
+    _=Depends(require_auth),
 ):
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if not event:
@@ -135,7 +128,7 @@ def admin_update_event(
 def admin_delete_event(
     event_id: int,
     db: Session = Depends(get_db),
-    _=Depends(_auth),
+    _=Depends(require_admin),   # ⛔ admin seulement
 ):
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if not event:
@@ -148,7 +141,7 @@ def admin_delete_event(
 @router.post("/api/admin/events/upload")
 async def upload_event_media(
     file: UploadFile = File(...),
-    _=Depends(_auth),
+    _=Depends(require_auth),
 ):
     """Upload une image ou vidéo vers Supabase Storage et retourne l'URL publique."""
     supabase_url = os.environ.get("SUPABASE_URL", "https://xlpypozfpuemuanhnoxh.supabase.co")
@@ -189,7 +182,7 @@ async def upload_event_media(
 def admin_event_registrations(
     event_id: int,
     db: Session = Depends(get_db),
-    _=Depends(_auth),
+    _=Depends(require_auth),
 ):
     event = db.query(models.Event).filter(models.Event.id == event_id).first()
     if not event:

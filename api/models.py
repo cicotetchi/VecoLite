@@ -1,7 +1,19 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
+
+
+class User(Base):
+    """Compte admin/opérateur pour l'interface d'administration."""
+    __tablename__ = "users"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    username      = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    role          = Column(String, default="operator")   # admin | operator
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
 
 
 class Bike(Base):
