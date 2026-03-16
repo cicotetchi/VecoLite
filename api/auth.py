@@ -7,11 +7,11 @@ Two FastAPI dependencies:
 """
 
 import os
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Header, HTTPException
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -19,17 +19,16 @@ JWT_SECRET    = os.environ.get("JWT_SECRET", "vecolite-jwt-secret-2024")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 24
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 # ── Password utils ────────────────────────────────────────────────────────────
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
 
 
 # ── Token utils ───────────────────────────────────────────────────────────────
